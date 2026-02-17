@@ -8,6 +8,7 @@ from pdf2image import convert_from_path
 import platform
 from datetime import datetime, time, date
 from flask_mailman import EmailMessage
+from textwrap import dedent
 
 
 ALLOWED_EXTENSIONS = {"pdf", "png", "jpg", "jpeg"}
@@ -29,7 +30,7 @@ create_bp = Blueprint("create", __name__)
 @login_required
 def create_post():
     
-    title = request.form.get("title").strip()
+    title = request.form.get("title", "").strip()
     content = request.form.get("content", "").strip()
     category_str = request.form.get("category", "general").upper()
     visibility_str = request.form.get("visibility", "public").upper()
@@ -98,10 +99,29 @@ def create_post():
 
         users = User.query.all()
         
+        post_url = f"https://mattsteamportal.com/post/{post.id}"
+        
+        email_body = dedent(f"""\
+        {current_user.username} just created a post on mattsteamportal.com
+        
+        Title: {post.title}
+        Category: {post.category.name if hasattr(post.category, "name") else post.category}
+        
+        Content:
+        {post.content}
+        
+        
+        Link: {post_url}                    
+        """)
+        
         for user in users:
             EmailMessage(
                 subject=f"New Team Portal Post from {current_user.username}!",
-                body=f"Hey {user.username}, {current_user.username} has just posted on mattsteamportal.com",
+                body=dedent(f"""\
+                Hey {user.username},
+                
+                {email_body}
+                """),
                 to=[user.email],
             ).send()
             
