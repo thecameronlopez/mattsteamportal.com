@@ -102,7 +102,7 @@ def create_post():
         post_url = f"https://mattsteamportal.com/post/{post.id}"
         
         email_body = dedent(f"""\
-        {current_user.username} just created a post on mattsteamportal.com
+        {current_user.username} just created a post on mattsteamportal.com,
         
         Title: {post.title}
         Category: {post.category.name if hasattr(post.category, "name") else post.category}
@@ -118,10 +118,10 @@ def create_post():
             EmailMessage(
                 subject=f"New Team Portal Post from {current_user.username}!",
                 body=dedent(f"""\
-                Hey {user.username},
+            Hey {user.username},
                 
-                {email_body}
-                """),
+            {email_body}
+            """),
                 to=[user.email],
             ).send()
             
