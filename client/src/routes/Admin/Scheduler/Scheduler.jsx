@@ -1,5 +1,5 @@
 import styles from "./Scheduler.module.css";
-import React, { use, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   MONTH_NAMES,
   WEEKDAY,
@@ -19,29 +19,22 @@ import {
 } from "../../../utils/API";
 import toast from "react-hot-toast";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faClock,
-  faNoteSticky,
-  faSquarePlus,
-  faUser,
-} from "@fortawesome/free-regular-svg-icons";
+import { faSquarePlus, faUser } from "@fortawesome/free-regular-svg-icons";
 import {
   faBackwardStep,
   faCalendarWeek,
-  faChevronLeft,
   faEllipsis,
   faForwardStep,
   faGears,
   faNotdef,
   faTrash,
-  faUserPlus,
 } from "@fortawesome/free-solid-svg-icons";
 import { clsx } from "clsx";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../Context/AuthContext";
 
 const Scheduler = () => {
-  const { loading, setLoading } = useAuth();
+  const { setLoading } = useAuth();
   const today = new Date();
   const navigate = useNavigate();
   const [currentWeek, setCurrentWeek] = useState(getWorkWeekFromDate(today));
@@ -68,7 +61,7 @@ const Scheduler = () => {
   useEffect(() => {
     localStorage.setItem(
       "pendingAssignments",
-      JSON.stringify(pendingAssignments)
+      JSON.stringify(pendingAssignments),
     );
   }, [pendingAssignments]);
 
@@ -98,8 +91,8 @@ const Scheduler = () => {
         toast.error(userList.message);
         return;
       }
-      setDepartments({
-        ...departments,
+      setDepartments((prev) => ({
+        ...prev,
         sales: userList.users.filter((u) => u.department === "sales"),
         service: userList.users.filter((u) => u.department === "service"),
         cleaner: userList.users.filter((u) => u.department === "cleaner"),
@@ -107,7 +100,7 @@ const Scheduler = () => {
         technician: userList.users.filter((u) => u.department === "technician"),
         office: userList.users.filter((u) => u.department === "office"),
         all: userList.users,
-      });
+      }));
     };
 
     usersGet();
@@ -135,20 +128,20 @@ const Scheduler = () => {
         const pending = pendingAssignments[key];
 
         const scheduledShift = schedules.find(
-          (s) => s.user_id === user.id && s.shift_date === dateStr
+          (s) => s.user_id === user.id && s.shift_date === dateStr,
         );
 
         const state = pending
           ? "staged"
           : scheduledShift
-          ? "committed"
-          : "empty";
+            ? "committed"
+            : "empty";
 
         const timeOffRequest = user.time_off_requests?.find(
           (req) =>
             req.start_date <= dateStr &&
             dateStr <= req.end_date &&
-            req.status == "approved"
+            req.status == "approved",
         );
 
         return {
@@ -170,7 +163,14 @@ const Scheduler = () => {
         };
       });
     });
-  }, [departments, selectedDpt, currentWeek, pendingAssignments, schedules]);
+  }, [
+    departments,
+    selectedDpt,
+    currentWeek,
+    pendingAssignments,
+    schedules,
+    currentLocation,
+  ]);
 
   // Week header (handles month boundaries)
   const getWeekHeader = () => {
@@ -294,7 +294,18 @@ const Scheduler = () => {
   };
 
   const handleDeleteSchedule = async (cell) => {
-    if (!cell.schedule_id) return;
+    const key = `${cell.user_id}|${formatDate(cell.date)}`;
+
+    // If this is a staged (not yet submitted) assignment, clear it locally.
+    if (!cell.schedule_id) {
+      setPendingAssignments((prev) => {
+        if (!(key in prev)) return prev;
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+      return;
+    }
 
     if (!confirm("Delete this scheduled shift?")) return;
 
@@ -303,7 +314,7 @@ const Scheduler = () => {
       {
         method: "DELETE",
         credentials: "include",
-      }
+      },
     );
 
     const data = await response.json();
@@ -492,12 +503,12 @@ const Scheduler = () => {
                   <span>
                     {
                       departments[selectedDpt].find(
-                        (u) => u.id === userRow[0].user_id
+                        (u) => u.id === userRow[0].user_id,
                       )?.first_name
                     }{" "}
                     {
                       departments[selectedDpt].find(
-                        (u) => u.id === userRow[0].user_id
+                        (u) => u.id === userRow[0].user_id,
                       )?.last_name[0]
                     }
                     {"."}
@@ -543,7 +554,7 @@ const Scheduler = () => {
                     styles.dateCell,
                     cell.is_time_off && styles.timeOffCell,
                     cell.status === "staged" && styles.stagedCell,
-                    cell.status === "committed" && styles.committedCell
+                    cell.status === "committed" && styles.committedCell,
                   )}
                   key={cellIndex}
                   title={tooltip}
@@ -604,6 +615,107 @@ const Scheduler = () => {
             <div key={index} className={styles.footerCell}></div>
           ))}
           <button onClick={submitSchedule} className={styles.submitShiftButton}>
+            Submit Shift
+          </button>
+        </div>
+      </div>
+      <div className={styles.mobileQuickSchedule}>
+        <p className={styles.mobileHint}>
+          Mobile quick mode: choose shift/location, then use Assign/Clear per
+          day.
+        </p>
+        {scheduleRows.map((userRow, rowIndex) => {
+          const employee = departments[selectedDpt].find(
+            (u) => u.id === userRow[0].user_id,
+          );
+          return (
+            <div className={styles.mobileUserCard} key={rowIndex}>
+              <div className={styles.mobileUserHeader}>
+                <p>
+                  {employee?.first_name} {employee?.last_name}
+                </p>
+                <button
+                  type="button"
+                  className={styles.mobileUserEdit}
+                  onClick={() => navigate(`/edit-user/${userRow[0].user_id}`)}
+                >
+                  Edit
+                </button>
+              </div>
+
+              <div className={styles.mobileDayList}>
+                {userRow.map((cell, dayIndex) => {
+                  const shift = getShiftByID(cell.shift_id);
+                  const day = currentWeek[dayIndex];
+
+                  let display = "Unassigned";
+                  if (cell.is_time_off) {
+                    display = "R/O";
+                  } else if (shift) {
+                    if (shift.id === 9998) {
+                      display = `${toAMPM(cell.custom_start_time) || "--"}-${toAMPM(cell.custom_end_time) || "--"}`;
+                    } else {
+                      display = shift.title;
+                    }
+                  }
+
+                  return (
+                    <div
+                      key={dayIndex}
+                      className={clsx(
+                        styles.mobileDayCard,
+                        cell.is_time_off && styles.mobileDayCardOff,
+                        cell.status === "staged" && styles.mobileDayCardStaged,
+                      )}
+                    >
+                      <div className={styles.mobileDayMeta}>
+                        <p>
+                          {WEEKDAY[dayIndex]} {MONTH_NAMES[day.getMonth()]}{" "}
+                          {day.getDate() + suffix(day.getDate())}
+                        </p>
+                        <small>{display}</small>
+                      </div>
+                      <div className={styles.mobileDayActions}>
+                        <button
+                          type="button"
+                          onClick={() => handleCellClick(cell)}
+                          disabled={cell.is_time_off}
+                        >
+                          Assign
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteSchedule(cell)}
+                          disabled={cell.is_time_off || !cell.shift_id}
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+
+        <div className={styles.mobileFooterActions}>
+          <button
+            type="button"
+            className={styles.printButton}
+            onClick={() => {
+              const start = formatDate(currentWeek[0]);
+              const end = formatDate(currentWeek[currentWeek.length - 1]);
+              printSchedule(start, end, selectedDpt);
+            }}
+          >
+            Print
+          </button>
+          <button
+            type="button"
+            className={styles.submitShiftButton}
+            onClick={submitSchedule}
+          >
             Submit Shift
           </button>
         </div>

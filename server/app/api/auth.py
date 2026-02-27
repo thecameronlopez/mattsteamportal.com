@@ -26,10 +26,21 @@ def verify_reset_token(token, expiration=1800): #30 minutes
 
 
 @auth_bp.route('/register', methods=['POST'])
+@login_required
 def register():
+    return admin_register()
+
+
+@auth_bp.route('/admin/register', methods=['POST'])
+@login_required
+def admin_register():
+    if current_user.role != RoleEnum.ADMIN:
+        return jsonify(success=False, message="Unauthorized"), 403
+
     data = request.get_json()
     if not data:
         return jsonify(success=False, message="No input data provided"), 400
+
     first_name = data.get('first_name')
     last_name = data.get('last_name')
     username = data.get('username').lower().strip()
@@ -39,32 +50,32 @@ def register():
     department = data.get("department")
     password = data.get('password')
     check_password = data.get('check_password')
-    
+
     if password != check_password:
         return jsonify(success=False, message="Passwords do not match"), 400
-    
+
     normalized_phone = None
     if phone_number:
         digits = re.sub(r'\D', '', phone_number)
         if len(digits) != 10:
             return jsonify(success=False, message="Invalid phone number"), 400
         normalized_phone = digits
-    
+
     if User.query.filter(
         (User.username == username) | (User.email == email)
-        ).first():
+    ).first():
         return jsonify(success=False, message="Username or email already exists"), 400
 
     try:
         roled = RoleEnum(role.lower())
     except ValueError:
         return jsonify(success=False, message="Invalid Role"), 400
-    
+
     try:
         departmented = DepartmentEnum(department.lower())
     except ValueError:
         return jsonify(success=False, message="Invalid Department"), 400
-    
+
     new_user = User(
         username=username,
         first_name=first_name.title(),
@@ -77,8 +88,10 @@ def register():
     new_user.set_password(password)
     db.session.add(new_user)
     db.session.commit()
-    
-    current_app.logger.info(f"{new_user.first_name} {new_user.last_name} has been registered.")
+
+    current_app.logger.info(
+        f"{current_user.first_name} {current_user.last_name} created user {new_user.first_name} {new_user.last_name}."
+    )
     return jsonify(success=True, message="User registered successfully", user=new_user.serialize()), 201
 
 
@@ -116,61 +129,6 @@ def hydrate_user():
 
 
 
-@auth_bp.route("/invite_link", methods=["POST"])
-def invite_link():
-    if not current_user.is_admin:
-        return jsonify(success=False, message="Unauthorized"), 403
-    data = request.get_json()
-    new_employee = data.get("email").strip()
-    is_admin = data.get("is_admin", False)
-    
-    if not new_employee:
-        return jsonify(success=False, message="No data in payload"), 400
-    registration_link = f"https://mattsteamportal.com/register?admin={is_admin}"
-    
-    body = f"""
-    <html>
-        <body style="font-family: Arial, sans-serif; color: #333;">
-            <h2>Hello!</h2>
-            <p>
-                You have been invited to join <strong>Matt's Appliances Team Portal</strong>.
-            </p>
-            <p>
-                Please follow the link below to register your account!
-            </p>
-            <p>
-                <a href="{registration_link}" target="_blank" 
-                style="background-color:#007BFF;color:white;padding:10px 15px;
-                        text-decoration:none;border-radius:5px;">
-                Register Your Account
-                </a>
-            </p>
-            <br>
-            <p style="font-size: 0.9em;">This invite was sent by {current_user.first_name}.</p>
-        </body>
-    </html>
-    """
-    
-    email = EmailMessage(
-        subject=f"{current_user.first_name} has invited you to join the Matt's Appliances team portal!",
-        body=body,
-        from_email=current_app.config.get("MAIL_DEFAULT_SENDER"),
-        to=[new_employee]
-    )
-    
-    email.content_subtype = "html"
-    try:
-        email.send()
-    except Exception as e:
-        current_app.logger.error(f"Error when sending invite link: {e}")
-        print(f"Error when sending invite link: {e}")
-        return jsonify(success=False, message="Failed to send invite link"), 500
-    
-    current_app.logger.info(f"An invite link has been sent to {new_employee}")
-    return jsonify(success=True, message=f"An invite link has been sent to {new_employee}."), 200
-    
-      
-    
 @auth_bp.route("/request_password_reset", methods=["POST"])
 def request_password_reset():
     data = request.get_json()

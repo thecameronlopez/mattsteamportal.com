@@ -7,7 +7,7 @@ load_dotenv()
 
 class Config:
     # Flask
-    SECRET_KEY = os.environ.get("SECRET_KEY", "dev_secret")  # fallback for dev
+    SECRET_KEY = os.environ.get("SECRET_KEY")  # fallback for dev
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URI")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     FLASK_ENV = os.environ.get("FLASK_ENV", "development")

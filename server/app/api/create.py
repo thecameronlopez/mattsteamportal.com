@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, current_app
-from app.models import User, Post, Shift, Comment, Schedule, LocationEnum, TimeOffRequest, PostVisibilityEnum, PostCategoryEnum, TimeOffStatusEnum
+from app.models import User, Post, Shift, Comment, Schedule, LocationEnum, TimeOffRequest, PostVisibilityEnum, PostCategoryEnum, TimeOffStatusEnum, RoleEnum
 from app.extensions import db
 from flask_login import current_user, login_required
 import os
@@ -178,6 +178,8 @@ def add_comment(post_id):
 @create_bp.route("/shift", methods=["POST"])
 @login_required
 def create_shift():
+    if current_user.role != RoleEnum.ADMIN:
+        return jsonify(success=False, message="Unauthorized"), 403
     data = request.get_json()
     start_str = data.get("start_time")
     end_str = data.get("end_time")
@@ -213,6 +215,8 @@ def create_shift():
 @create_bp.route("/bulk_schedule", methods=["POST"])
 @login_required
 def create_bulk_schedule():
+    if current_user.role != RoleEnum.ADMIN:
+        return jsonify(success=False, message="Unauthorized"), 403
     data = request.get_json()
     schedules = data.get("schedules")
     
@@ -296,6 +300,8 @@ def create_bulk_schedule():
 @create_bp.route("/schedule", methods=["POST"])
 @login_required
 def create_schedule_item():
+    if current_user.role != RoleEnum.ADMIN:
+        return jsonify(success=False, message="Unauthorized"), 403
     data = request.get_json()
     user_id = data.get("user_id")
     shift_id = data.get("shift_id")

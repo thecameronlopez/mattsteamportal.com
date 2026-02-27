@@ -11,7 +11,6 @@ import ProtectedLayout from "./layout/ProtectedLayout.jsx";
 import AdminLayout from "./layout/AdminLayout.jsx";
 import Home from "./routes/Common/Home/Home.jsx";
 import Login from "./routes/Common/Login/Login.jsx";
-import Register from "./routes/Common/Register/Register.jsx";
 import Settings from "./routes/Admin/Settings/Settings.jsx";
 import Scheduler from "./routes/Admin/Scheduler/Scheduler.jsx";
 import TimeOffRequest from "./routes/Common/TimeOffRequest/TimeOffRequest.jsx";
@@ -29,7 +28,6 @@ const App = () => {
     createRoutesFromElements(
       <Route path="/" element={<RootLayout />}>
         <Route path="login" element={<Login />} />
-        <Route path="register" element={<Register />} />
         <Route path="forgot-password" element={<ForgotPassword />} />
         <Route path="reset-password/:token" element={<ResetPassword />} />
         {/* <Route path="reset-password/" element={<ResetPassword />} /> */}

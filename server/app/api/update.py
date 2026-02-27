@@ -16,13 +16,14 @@ def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @update_bp.route("/update_post/<int:id>", methods=["PATCH"])
+@login_required
 def update_post(id):
     post = Post.query.get(id)
     if not post:
         return jsonify(success=False, message="Could not edit this post."), 403
     
     if post.author_id != current_user.id:
-        return jsonify(success=False, message="You are not authorized to delete this post.")
+        return jsonify(success=False, message="You are not authorized to delete this post."), 403
     title = request.form.get("title", "").strip()
     content = request.form.get("content", "").strip()
     category = request.form.get("category", "").strip()

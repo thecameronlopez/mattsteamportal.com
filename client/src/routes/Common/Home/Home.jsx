@@ -7,25 +7,22 @@ import {
   formatDate,
   parseLocalDate,
   toAMPM,
-  convertDateFromStr,
   MONTH_NAMES,
 } from "../../../utils/Helpers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBackwardStep,
-  faCalendarDay,
   faCalendarWeek,
-  faCheckToSlot,
   faCircleInfo,
   faForwardStep,
   faGears,
   faPeopleGroup,
   faSignsPost,
   faUserClock,
-  faUserPen,
 } from "@fortawesome/free-solid-svg-icons";
 import { faCalendarDays } from "@fortawesome/free-regular-svg-icons";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const Home = () => {
   const { user } = useAuth();
@@ -40,7 +37,7 @@ const Home = () => {
     const end = formatDate(currentWeek[currentWeek.length - 1]);
     const scheduleGet = async () => {
       const res = await fetch(
-        `/api/read/user_schedule/${user.id}?start_date=${start}&end_date=${end}`
+        `/api/read/user_schedule/${user.id}?start_date=${start}&end_date=${end}`,
       );
       const data = await res.json();
       if (!data.success) {
@@ -64,21 +61,6 @@ const Home = () => {
     return startMonth === endMonth
       ? `${startMonth} ${start.getDate()} - ${end.getDate()}`
       : `${startMonth} ${start.getDate()} - ${endMonth} ${end.getDate()}`;
-  };
-
-  const getWeekdayHeader = (shiftDateStr) => {
-    const dateObj = parseLocalDate(shiftDateStr);
-
-    const index = currentWeek.findIndex(
-      (d) =>
-        d.getFullYear() === dateObj.getFullYear() &&
-        d.getMonth() === dateObj.getMonth() &&
-        d.getDate() === dateObj.getDate()
-    );
-
-    if (index === -1) return "";
-
-    return WEEKDAY[index];
   };
 
   // Helper: Build Mon-Sat week from a Monday
@@ -191,7 +173,7 @@ const Home = () => {
                     <p>
                       {scheduleForDay.shift_id !== 9999
                         ? `${toAMPM(
-                            scheduleForDay.shift.start_time
+                            scheduleForDay.shift.start_time,
                           )} - ${toAMPM(scheduleForDay.shift.end_time)}`
                         : scheduleForDay.shift.title}
                     </p>

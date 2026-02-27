@@ -78,7 +78,7 @@ const Settings = () => {
     <div className={styles.settingsContainer}>
       <FontAwesomeIcon
         icon={faChevronLeft}
-        onClick={() => navigate(-1 || "/")}
+        onClick={() => navigate(-1)}
         className={styles.goBack}
       />
       <div className={styles.shiftSettings}>

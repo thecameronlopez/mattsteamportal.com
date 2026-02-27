@@ -1,12 +1,13 @@
 import React from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
+import LoadingScreen from "../components/Common/LoadingScreen";
 
 const AdminLayout = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  if (loading) return <p>Loading...</p>;
-  if (!user.role === "admin")
+  if (loading) return <LoadingScreen title="Loading admin workspace..." />;
+  if (user.role !== "admin")
     return (
       <>
         <h2>Admin Panel</h2>

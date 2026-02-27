@@ -44,12 +44,13 @@ const TeamSchedule = () => {
       const end = formatDate(currentWeek[currentWeek.length - 1]);
       try {
         const res = await fetch(
-          `/api/read/team_schedules/${selectedDpt}?start_date=${start}&end_date=${end}`
+          `/api/read/team_schedules/${selectedDpt}?start_date=${start}&end_date=${end}`,
         );
         const data = await res.json();
         if (!data.success) toast.error(data.message);
         else setSchedules(data.schedules);
       } catch (err) {
+        console.log("[ERROR]: ", err);
         toast.error("Failed to fetch schedules");
       }
     };
@@ -77,15 +78,15 @@ const TeamSchedule = () => {
   const goPrev = () =>
     setCurrentWeek(
       buildWeekFromMonday(
-        new Date(currentWeek[0]).setDate(currentWeek[0].getDate() - 7)
-      )
+        new Date(currentWeek[0]).setDate(currentWeek[0].getDate() - 7),
+      ),
     );
   const goToday = () => setCurrentWeek(getWorkWeekFromDate(today));
   const goNext = () =>
     setCurrentWeek(
       buildWeekFromMonday(
-        new Date(currentWeek[0]).setDate(currentWeek[0].getDate() + 7)
-      )
+        new Date(currentWeek[0]).setDate(currentWeek[0].getDate() + 7),
+      ),
     );
 
   const submitNote = async (scheduleId) => {
@@ -111,11 +112,12 @@ const TeamSchedule = () => {
       const start = formatDate(currentWeek[0]);
       const end = formatDate(currentWeek[currentWeek.length - 1]);
       const refreshRes = await fetch(
-        `/api/read/team_schedules/${selectedDpt}?start_date=${start}&end_date=${end}`
+        `/api/read/team_schedules/${selectedDpt}?start_date=${start}&end_date=${end}`,
       );
       const newData = await refreshRes.json();
       if (newData.success) setSchedules(newData.schedules);
     } catch (err) {
+      console.log("[ERROR]: ", err);
       toast.error("Failed to add note");
     }
   };
@@ -124,7 +126,7 @@ const TeamSchedule = () => {
     <div className={styles.teamScheduleContainer}>
       <FontAwesomeIcon
         icon={faChevronLeft}
-        onClick={() => navigate(-1 || "/")}
+        onClick={() => navigate(-1)}
         className={styles.goBack}
       />
       <select
@@ -178,7 +180,7 @@ const TeamSchedule = () => {
                             setAddingNoteTo(
                               isAddingNote
                                 ? { userIndex: null, dayIndex: null }
-                                : { userIndex, dayIndex }
+                                : { userIndex, dayIndex },
                             )
                           }
                         />

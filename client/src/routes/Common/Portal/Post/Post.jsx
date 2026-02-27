@@ -6,9 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faChevronLeft,
   faComment,
-  faCommentSlash,
   faRectangleXmark,
-  faSignsPost,
 } from "@fortawesome/free-solid-svg-icons";
 import { convertDateFromStr } from "../../../../utils/Helpers";
 import { useAuth } from "../../../../Context/AuthContext";
@@ -24,18 +22,21 @@ const Post = () => {
   useEffect(() => {
     const getPost = async () => {
       setLoading(true);
-      const response = await fetch(`/api/read/post/${id}`);
-      const data = await response.json();
-      if (!data.success) {
-        toast.error(data.message);
-        return;
+      try {
+        const response = await fetch(`/api/read/post/${id}`);
+        const data = await response.json();
+        if (!data.success) {
+          toast.error(data.message);
+          return;
+        }
+        setPost(data.post);
+      } finally {
+        setLoading(false);
       }
-      setPost(data.post);
     };
 
     getPost();
-    setLoading(false);
-  }, [id]);
+  }, [id, setLoading]);
 
   const addComment = async (post_id) => {
     if (!confirm("Add Comment?")) return;
@@ -115,17 +116,15 @@ const Post = () => {
             </div>
           )}
           {post.comments.length !== 0 ? (
-            post.comments.map(
-              ({ id, content, created_at, commenter }, index) => (
-                <div key={index} className={styles.comment}>
-                  <p>{content}</p>
-                  <div>
-                    <small>{convertDateFromStr(created_at)}</small>
-                    <p>{commenter.username}</p>
-                  </div>
+            post.comments.map(({ content, created_at, commenter }, index) => (
+              <div key={index} className={styles.comment}>
+                <p>{content}</p>
+                <div>
+                  <small>{convertDateFromStr(created_at)}</small>
+                  <p>{commenter.username}</p>
                 </div>
-              )
-            )
+              </div>
+            ))
           ) : (
             <div className={styles.comment}>
               <p

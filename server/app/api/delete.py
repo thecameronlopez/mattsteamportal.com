@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, current_app
-from app.models import User, Post, Comment, Shift, Schedule, TimeOffRequest
+from app.models import User, Post, Comment, Shift, Schedule, TimeOffRequest, RoleEnum
 from app.extensions import db
 from flask_login import current_user, login_required
 from datetime import date, time
@@ -10,6 +10,8 @@ delete_bp = Blueprint("delete", __name__)
 @delete_bp.route("/user/<int:id>", methods=["DELETE"])
 @login_required
 def delete_user(id):
+    if current_user.role != RoleEnum.ADMIN:
+        return jsonify(success=False, message="Unauthorized"), 403
     user = User.query.get(id)
     if not user:
         return jsonify(success=False, message="User not found"), 404
@@ -28,6 +30,8 @@ def delete_user(id):
 @delete_bp.route("/post/<int:id>", methods=["DELETE"])
 @login_required
 def delete_post(id):
+    if current_user.role != RoleEnum.ADMIN:
+        return jsonify(success=False, message="Unauthorized"), 403
     post = Post.query.get(id)
     if not post:
         return jsonify(success=False, message="Could not query post, please try again."), 400
@@ -44,7 +48,7 @@ def delete_comment(id):
     comment = Comment.query.get(id)
     if not comment:
         return jsonify(success=False, message="Something went wrong when finding comment"), 400
-    if not current_user.is_admin:
+    if current_user.role != RoleEnum.ADMIN:
         if comment.user_id != current_user.id:
             return jsonify(success=False, message="Sorry, you cant delete a comment that wasnt yours."), 403
     db.session.delete(comment)
@@ -57,6 +61,8 @@ def delete_comment(id):
 @delete_bp.route("/shift/<int:id>", methods=["DELETE"])
 @login_required
 def delete_shift(id):
+    if current_user.role != RoleEnum.ADMIN:
+        return jsonify(success=False, message="Unauthorized"), 403
     shift = Shift.query.get(id)
     if not shift:
         return jsonify(success=False, message="Shift not found."), 404
@@ -73,6 +79,8 @@ def delete_shift(id):
 @delete_bp.route("/schedule/<int:id>/<date>", methods=["DELETE"])
 @login_required
 def delete_schedule(id, date):
+    if current_user.role != RoleEnum.ADMIN:
+        return jsonify(success=False, message="Unauthorized"), 403
     schedule_item = Schedule.query.filter(
         Schedule.user_id == id,
         Schedule.shift_date == date
@@ -87,6 +95,8 @@ def delete_schedule(id, date):
 @delete_bp.route("/scheduled_week", methods=["DELETE"])
 @login_required
 def clear_week():
+    if current_user.role != RoleEnum.ADMIN:
+        return jsonify(success=False, message="Unauthorized"), 403
     data = request.get_json()
     start_date = data.get("start_date")
     end_date = data.get("end_date")
@@ -99,8 +109,8 @@ def clear_week():
         end = date.fromisoformat(end_date)
         
         deleted = Schedule.query.filter(
-            Schedule.shift_date >= start_date,
-            Schedule.shift_date <= end_date
+            Schedule.shift_date >= start,
+            Schedule.shift_date <= end
         ).delete(synchronize_session=False)
         
         db.session.commit()
@@ -115,6 +125,8 @@ def clear_week():
 @delete_bp.route("/time_off_request/<int:id>", methods=["DELETE"])
 @login_required
 def delete_time_off_request(id):
+    if current_user.role != RoleEnum.ADMIN:
+        return jsonify(success=False, message="Unauthorized"), 403
     time_off = TimeOffRequest.query.get(id)
     if not time_off:
         return jsonify(success=False, message="Request not found."), 400

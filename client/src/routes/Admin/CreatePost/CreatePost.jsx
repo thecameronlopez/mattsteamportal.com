@@ -6,8 +6,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faChevronLeft,
   faCircleXmark,
-  faDeleteLeft,
-  faSignsPost,
 } from "@fortawesome/free-solid-svg-icons";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +13,7 @@ import { useAuth } from "../../../Context/AuthContext";
 
 const CreatePost = () => {
   const navigate = useNavigate();
-  const { loading, setLoading } = useAuth();
+  const { setLoading } = useAuth();
   const [formData, setFormData] = useState({
     title: "",
     content: "",

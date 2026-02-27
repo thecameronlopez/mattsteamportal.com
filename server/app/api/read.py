@@ -65,6 +65,7 @@ def get_all_users():
 ########################
 ########################
 @read_bp.route("/post/<int:id>", methods=["GET"])
+@login_required
 def get_post(id):
     post = Post.query.get(id)
     if not post:
@@ -75,6 +76,7 @@ def get_post(id):
 
 
 @read_bp.route("/posts/<category>/<int:page>/<int:limit>", methods=["GET"])
+@login_required
 def get_posts(category, page, limit):
     page = max(page, 1)
     offset = (page - 1) * limit

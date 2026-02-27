@@ -34,7 +34,7 @@ const UserForm = ({ onNewUser }) => {
     if (!confirm("Submit data?")) return;
 
     try {
-      const response = await fetch("/api/auth/register", {
+      const response = await fetch("/api/auth/admin/register", {
         method: "POST",
         credentials: "include",
         headers: {

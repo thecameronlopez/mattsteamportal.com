@@ -15,7 +15,7 @@ import {
   faGraduationCap,
   faPenClip,
 } from "@fortawesome/free-solid-svg-icons";
-import { convertDateFromStr, formatDate } from "../../../../utils/Helpers";
+import { convertDateFromStr } from "../../../../utils/Helpers";
 import { POST_CATEGORY } from "../../../../utils/Enums";
 
 const Posts = () => {
@@ -29,36 +29,37 @@ const Posts = () => {
     total_posts: 0,
     total_pages: 1,
   });
+  const { category, page, limit } = postMeta;
 
   useEffect(() => {
     const getPosts = async () => {
       try {
         const response = await fetch(
-          `/api/read/posts/${postMeta.category}/${postMeta.page}/${postMeta.limit}`
+          `/api/read/posts/${category}/${page}/${limit}`,
         );
         const data = await response.json();
         if (!data.success) {
           throw new Error(data.message);
         }
         setPosts(data.posts);
-        setPostMeta({
-          ...postMeta,
+        setPostMeta((prev) => ({
+          ...prev,
           total_pages: data.total_pages,
           total_posts: data.total_posts,
-        });
+        }));
       } catch (error) {
         console.error("[SCHEDULE QUERY ERROR]: ", error);
         toast.error(error.message);
       }
     };
     getPosts();
-  }, [postMeta.category, postMeta.page]);
+  }, [category, page, limit]);
 
   const handleCategory = (cat) => {
-    setPostMeta({
-      ...postMeta,
+    setPostMeta((prev) => ({
+      ...prev,
       category: cat,
-    });
+    }));
   };
 
   const handlePage = (step) => {

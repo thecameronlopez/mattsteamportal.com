@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, make_response, request, abort
-from app.models import Schedule, TimeOffRequest, DepartmentEnum, User
+from flask_login import login_required
+from app.models import Schedule, TimeOffRequest, DepartmentEnum, User, TimeOffStatusEnum
 from app.extensions import db
 from datetime import datetime, timedelta
 import pdfkit
@@ -10,6 +11,7 @@ print_bp = Blueprint("print", __name__)
 DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
 @print_bp.route("/schedule", methods=["GET"])
+@login_required
 def print_schedule():
     start_date = request.args.get("start_date")
     end_date = request.args.get("end_date")
@@ -57,7 +59,7 @@ def print_schedule():
         db.session.query(TimeOffRequest)
         .join(TimeOffRequest.user)
         .filter(
-            TimeOffRequest.status == "approved",
+            TimeOffRequest.status == TimeOffStatusEnum.APPROVED,
             TimeOffRequest.start_date <= end,
             TimeOffRequest.end_date >= start
         )

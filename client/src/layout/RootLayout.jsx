@@ -4,6 +4,7 @@ import { Toaster } from "react-hot-toast";
 import { useAuth } from "../Context/AuthContext";
 import toast from "react-hot-toast";
 import LOGO from "../assets/portal-logo.png";
+import LoadingScreen from "../components/Common/LoadingScreen";
 
 const RootLayout = () => {
   const { user, setUser, loading } = useAuth();
@@ -25,7 +26,7 @@ const RootLayout = () => {
   const path = location.pathname;
   const hideLink = path.startsWith("/review") || path.startsWith("/thank-you");
 
-  if (loading) return <h2>Loading...</h2>;
+  if (loading) return <LoadingScreen title="Starting Team Portal..." />;
 
   return (
     <>
@@ -46,16 +47,6 @@ const RootLayout = () => {
       <Toaster position="bottom-right" reverseOrder={false} />
       <footer>
         {user && <button onClick={logout}>Logout</button>}
-        {user?.is_admin && (
-          <>
-            <Link to={"/send-invite-link"} className="registration-link">
-              Send Registration Link
-            </Link>
-            <Link to={"/employee-directory"} className="registration-link">
-              Employee Directory
-            </Link>
-          </>
-        )}
 
         <p>© 2025 Matt's Appliances</p>
       </footer>
