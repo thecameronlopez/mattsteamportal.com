@@ -393,6 +393,31 @@ def time_off_request():
         db.session.add(time_off)
         db.session.commit()
         current_app.logger.info(f"{current_user.first_name} {current_user.last_name} has submitted a time off request from {start_date} to {end_date}.")
+
+        try:
+            admins = User.query.filter(User.role == RoleEnum.ADMIN).all()
+            if admins:
+                subject = f"New Time Off Request: {current_user.first_name} {current_user.last_name}"
+                for admin in admins:
+                    EmailMessage(
+                        subject=subject,
+                        body=dedent(f"""\
+                        Hey {admin.username},
+
+                        {current_user.first_name} {current_user.last_name} submitted a new time off request.
+
+                        Start Date: {start_date.isoformat()}
+                        End Date: {end_date.isoformat()}
+                        PTO: {"Yes" if is_pto else "No"}
+                        Reason: {reason}
+
+                        Review requests at: https://mattsteamportal.com/time-off-status-update
+                        """),
+                        to=[admin.email],
+                    ).send()
+        except Exception as email_error:
+            current_app.logger.error(f"[TIME OFF EMAIL ERROR]: {email_error}")
+
         return jsonify(success=True, message="Time off has been submitted for approval"), 201
     except Exception as e:
         db.session.rollback()

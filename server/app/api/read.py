@@ -220,7 +220,13 @@ def get_team_schedules(department):
         for s in filtered:
             uid = s.user.id
             if uid not in grouped:
-                grouped[uid] = {"user": s.user.serialize(), "schedules": []}
+                grouped[uid] = {
+                    "user": s.user.serialize(),
+                    "schedules": [],
+                    "time_off_dates": sorted(
+                        [d.isoformat() for d in time_off_map.get(uid, set())]
+                    ),
+                }
             grouped[uid]["schedules"].append(s.serialize())
 
         return jsonify(success=True, schedules=list(grouped.values())), 200
@@ -261,17 +267,66 @@ def get_time_off_request(id):
 @login_required
 def get_time_off_requests():
     try:
-        time_off_requests = TimeOffRequest.query.all()
-        by_status = {
-            "pending": [],
-            "approved": [],
-            "denied": []
-        }
-        
-        for to in time_off_requests:
-            by_status[to.status.value].append(to.serialize())
-        
-        return jsonify(success=True, time_off_requests=by_status), 200
+        approved_page = max(request.args.get("approved_page", 1, type=int), 1)
+        denied_page = max(request.args.get("denied_page", 1, type=int), 1)
+        page_size = max(request.args.get("limit", 25, type=int), 1)
+
+        # Pending stays as a full query per product requirement.
+        pending_requests = (
+            TimeOffRequest.query.options(joinedload(TimeOffRequest.user))
+            .filter(TimeOffRequest.status == TimeOffStatusEnum.PENDING)
+            .order_by(TimeOffRequest.id.desc())
+            .all()
+        )
+
+        approved_query = (
+            TimeOffRequest.query.options(joinedload(TimeOffRequest.user))
+            .filter(TimeOffRequest.status == TimeOffStatusEnum.APPROVED)
+            .order_by(TimeOffRequest.id.desc())
+        )
+        denied_query = (
+            TimeOffRequest.query.options(joinedload(TimeOffRequest.user))
+            .filter(TimeOffRequest.status == TimeOffStatusEnum.DENIED)
+            .order_by(TimeOffRequest.id.desc())
+        )
+
+        approved_total = approved_query.count()
+        denied_total = denied_query.count()
+
+        approved_total_pages = max((approved_total + page_size - 1) // page_size, 1)
+        denied_total_pages = max((denied_total + page_size - 1) // page_size, 1)
+
+        approved_page = min(approved_page, approved_total_pages)
+        denied_page = min(denied_page, denied_total_pages)
+
+        approved_offset = (approved_page - 1) * page_size
+        denied_offset = (denied_page - 1) * page_size
+
+        approved_requests = approved_query.offset(approved_offset).limit(page_size).all()
+        denied_requests = denied_query.offset(denied_offset).limit(page_size).all()
+
+        return jsonify(
+            success=True,
+            time_off_requests={
+                "pending": [to.serialize() for to in pending_requests],
+                "approved": [to.serialize() for to in approved_requests],
+                "denied": [to.serialize() for to in denied_requests],
+            },
+            pagination={
+                "approved": {
+                    "page": approved_page,
+                    "limit": page_size,
+                    "total_items": approved_total,
+                    "total_pages": approved_total_pages,
+                },
+                "denied": {
+                    "page": denied_page,
+                    "limit": page_size,
+                    "total_items": denied_total,
+                    "total_pages": denied_total_pages,
+                },
+            },
+        ), 200
     except Exception as e:
         current_app.logger.error(f"[TIME OFF REQUEST QUERY ERROR]: {e}")
         return jsonify(success=False, message="There was an error when querying time off requests."), 500

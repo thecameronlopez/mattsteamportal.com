@@ -5,11 +5,10 @@
   align-items: center;
 }
 
-.portalContainer svg.goBack {
-  font-size: 1.5rem;
+.goBack {
   align-self: flex-start;
-  margin-left: 1rem;
-  margin-bottom: 1rem;
+  margin-left: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .portalHeader {

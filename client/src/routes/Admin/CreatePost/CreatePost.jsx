@@ -3,10 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { POST_CATEGORY, VISIBILITY } from "../../../utils/Enums";
 import { renderObjects } from "../../../utils/Helpers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faChevronLeft,
-  faCircleXmark,
-} from "@fortawesome/free-solid-svg-icons";
+import { faCircleXmark } from "@fortawesome/free-solid-svg-icons";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../Context/AuthContext";
@@ -99,11 +96,6 @@ const CreatePost = () => {
 
   return (
     <div className={styles.newPostContainer}>
-      <FontAwesomeIcon
-        icon={faChevronLeft}
-        onClick={() => navigate("/posts")}
-        className={styles.returnTo}
-      />
       <form className={styles.newPostForm} onSubmit={handleSubmit}>
         <div>
           <label htmlFor="title">Title</label>

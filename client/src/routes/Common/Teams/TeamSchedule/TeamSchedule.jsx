@@ -11,13 +11,11 @@ import {
   toAMPM,
 } from "../../../../utils/Helpers";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../../Context/AuthContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBackwardStep,
   faCalendarWeek,
-  faChevronLeft,
   faForwardStep,
   faNotesMedical,
 } from "@fortawesome/free-solid-svg-icons";
@@ -25,7 +23,6 @@ import {
 const TeamSchedule = () => {
   const today = new Date();
   const { user } = useAuth();
-  const navigate = useNavigate();
 
   const [currentWeek, setCurrentWeek] = useState(getWorkWeekFromDate(today));
   const [selectedDpt, setSelectedDpt] = useState(user.department);
@@ -124,11 +121,6 @@ const TeamSchedule = () => {
 
   return (
     <div className={styles.teamScheduleContainer}>
-      <FontAwesomeIcon
-        icon={faChevronLeft}
-        onClick={() => navigate(-1)}
-        className={styles.goBack}
-      />
       <select
         name="selectedDpt"
         value={selectedDpt}
@@ -151,11 +143,13 @@ const TeamSchedule = () => {
       </div>
 
       <div className={styles.scheduleList}>
-        {schedules.map(({ user, schedules: userSchedules }, userIndex) => (
+        {schedules.map(
+          ({ user, schedules: userSchedules, time_off_dates: timeOffDates = [] }, userIndex) => (
           <div className={styles.scheduleItem} key={user.id}>
             <h4>{user.first_name}</h4>
             <div className={styles.userWeek}>
               {currentWeek.map((day, dayIndex) => {
+                const dayStr = formatDate(day);
                 const scheduleForDay = userSchedules.find((s) => {
                   const sd = parseLocalDate(s.shift_date);
                   return (
@@ -164,6 +158,7 @@ const TeamSchedule = () => {
                     sd.getDate() === day.getDate()
                   );
                 });
+                const isRequestOff = timeOffDates.includes(dayStr);
 
                 const isAddingNote =
                   addingNoteTo.userIndex === userIndex &&
@@ -193,7 +188,7 @@ const TeamSchedule = () => {
                         {toAMPM(scheduleForDay.shift.end_time)}
                       </p>
                     ) : (
-                      <p className={styles.offDay}>R/O</p>
+                      <p className={styles.offDay}>{isRequestOff ? "R/O" : "Off"}</p>
                     )}
 
                     {isAddingNote && (
@@ -222,7 +217,8 @@ const TeamSchedule = () => {
               })}
             </div>
           </div>
-        ))}
+          ),
+        )}
       </div>
     </div>
   );

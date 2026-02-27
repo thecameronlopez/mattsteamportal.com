@@ -9,11 +9,24 @@ const TimeOffStatus = () => {
     approved: [],
     denied: [],
   });
+  const [pages, setPages] = useState({
+    approved: 1,
+    denied: 1,
+  });
+  const [pagination, setPagination] = useState({
+    approved: { page: 1, total_pages: 1, total_items: 0 },
+    denied: { page: 1, total_pages: 1, total_items: 0 },
+  });
   const [statusChanges, setStatusChanges] = useState(0);
 
   useEffect(() => {
     const getRequestOffs = async () => {
-      const response = await fetch("/api/read/time_off_requests");
+      const params = new URLSearchParams({
+        approved_page: String(pages.approved),
+        denied_page: String(pages.denied),
+        limit: "25",
+      });
+      const response = await fetch(`/api/read/time_off_requests?${params}`);
       const data = await response.json();
       if (!data.success) {
         // toast.error(data.message);
@@ -24,10 +37,21 @@ const TimeOffStatus = () => {
         approved: [...data.time_off_requests.approved],
         denied: [...data.time_off_requests.denied],
       });
+
+      if (data.pagination) {
+        setPagination({
+          approved: data.pagination.approved,
+          denied: data.pagination.denied,
+        });
+        setPages((prev) => ({
+          approved: data.pagination.approved?.page ?? prev.approved,
+          denied: data.pagination.denied?.page ?? prev.denied,
+        }));
+      }
     };
 
     getRequestOffs();
-  }, [statusChanges]);
+  }, [statusChanges, pages.approved, pages.denied]);
 
   const deleteTimeOffRequest = async (id) => {
     if (!confirm("Delete time off request?")) return;
@@ -138,7 +162,10 @@ const TimeOffStatus = () => {
       </div>
       {/* ---------------- APPROVED ---------------- */}
       <div>
-        <p>Approved Requests</p>
+        <p>
+          Approved Requests ({pagination.approved.total_items ?? ro.approved.length}
+          )
+        </p>
         <ul className={styles.approvedList}>
           {ro.approved.length !== 0 ? (
             ro.approved.map(
@@ -187,10 +214,42 @@ const TimeOffStatus = () => {
             </li>
           )}
         </ul>
+        <div className={styles.paginationControls}>
+          <button
+            type="button"
+            onClick={() =>
+              setPages((prev) => ({
+                ...prev,
+                approved: Math.max(prev.approved - 1, 1),
+              }))
+            }
+            disabled={pagination.approved.page <= 1}
+          >
+            Previous
+          </button>
+          <span>
+            Page {pagination.approved.page} of {pagination.approved.total_pages}
+          </span>
+          <button
+            type="button"
+            onClick={() =>
+              setPages((prev) => ({
+                ...prev,
+                approved: Math.min(
+                  prev.approved + 1,
+                  pagination.approved.total_pages || 1
+                ),
+              }))
+            }
+            disabled={pagination.approved.page >= pagination.approved.total_pages}
+          >
+            Next
+          </button>
+        </div>
       </div>
       {/* ---------------- DENIED ---------------- */}
       <div>
-        <p>Denied Requests</p>
+        <p>Denied Requests ({pagination.denied.total_items ?? ro.denied.length})</p>
         <ul className={styles.deniedList}>
           {ro.denied.length !== 0 ? (
             ro.denied.map(
@@ -244,6 +303,38 @@ const TimeOffStatus = () => {
             </li>
           )}
         </ul>
+        <div className={styles.paginationControls}>
+          <button
+            type="button"
+            onClick={() =>
+              setPages((prev) => ({
+                ...prev,
+                denied: Math.max(prev.denied - 1, 1),
+              }))
+            }
+            disabled={pagination.denied.page <= 1}
+          >
+            Previous
+          </button>
+          <span>
+            Page {pagination.denied.page} of {pagination.denied.total_pages}
+          </span>
+          <button
+            type="button"
+            onClick={() =>
+              setPages((prev) => ({
+                ...prev,
+                denied: Math.min(
+                  prev.denied + 1,
+                  pagination.denied.total_pages || 1
+                ),
+              }))
+            }
+            disabled={pagination.denied.page >= pagination.denied.total_pages}
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );

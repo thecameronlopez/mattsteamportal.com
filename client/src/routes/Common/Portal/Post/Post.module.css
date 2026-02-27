@@ -6,10 +6,9 @@
   align-items: center;
 }
 
-.postContainer svg.postReturnTo {
-  font-size: 1.5rem;
+.postReturnTo {
   align-self: flex-start;
-  color: var(--linkText);
+  margin-bottom: 0.6rem;
 }
 
 .postContent {

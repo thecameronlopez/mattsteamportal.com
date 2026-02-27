@@ -1,10 +1,9 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import styles from "./Post.module.css";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faChevronLeft,
   faComment,
   faRectangleXmark,
 } from "@fortawesome/free-solid-svg-icons";
@@ -14,7 +13,6 @@ import { useAuth } from "../../../../Context/AuthContext";
 const Post = () => {
   const { id } = useParams();
   const { setLoading } = useAuth();
-  const navigate = useNavigate();
   const [post, setPost] = useState(null);
   const [commenting, setCommenting] = useState(false);
   const [comment, setComment] = useState("");
@@ -72,11 +70,6 @@ const Post = () => {
 
   return (
     <div className={styles.postContainer}>
-      <FontAwesomeIcon
-        icon={faChevronLeft}
-        onClick={() => navigate(-1) || navigate("/posts")}
-        className={styles.postReturnTo}
-      />
       <div className={styles.postContent}>
         {post.file_path && (
           <img

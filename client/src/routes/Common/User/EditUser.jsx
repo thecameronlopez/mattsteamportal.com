@@ -1,17 +1,14 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import styles from "./EditUser.module.css";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "../../../Context/AuthContext";
 import { DEPARTMENTS, ROLES } from "../../../utils/Enums";
 import { renderObjects } from "../../../utils/Helpers";
-import { faChevronLeft } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const EditUser = () => {
   const { user } = useAuth();
   const { id } = useParams();
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -79,7 +76,6 @@ const EditUser = () => {
 
   return (
     <div className={styles.editUserBlock}>
-      <FontAwesomeIcon icon={faChevronLeft} onClick={() => navigate(-1)} />
       <form className={styles.editUserForm} onSubmit={handleSubmit}>
         <div>
           <label>First Name:</label>

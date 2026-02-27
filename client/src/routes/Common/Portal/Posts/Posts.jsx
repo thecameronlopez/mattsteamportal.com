@@ -9,7 +9,6 @@ import {
   faBell,
   faBreadSlice,
   faBullhorn,
-  faChevronLeft,
   faEarthAmericas,
   faForwardStep,
   faGraduationCap,
@@ -55,6 +54,29 @@ const Posts = () => {
     getPosts();
   }, [category, page, limit]);
 
+  useEffect(() => {
+    const markPostsAsSeen = async () => {
+      try {
+        const response = await fetch("/api/read/posts/all/1/1");
+        const data = await response.json();
+        if (!data.success || !data.posts?.length) return;
+
+        const latestPost = data.posts[0];
+        localStorage.setItem(
+          `posts_last_seen_${user.id}`,
+          JSON.stringify({
+            id: latestPost.id,
+            created_at: latestPost.created_at,
+          }),
+        );
+      } catch {
+        // best-effort local unread tracking
+      }
+    };
+
+    markPostsAsSeen();
+  }, [user.id]);
+
   const handleCategory = (cat) => {
     setPostMeta((prev) => ({
       ...prev,
@@ -77,11 +99,6 @@ const Posts = () => {
   };
   return (
     <div className={styles.portalContainer}>
-      <FontAwesomeIcon
-        icon={faChevronLeft}
-        onClick={() => navigate("/")}
-        className={styles.goBack}
-      />
       <div className={styles.portalHeader}>
         <div className={styles.portalNavi}>
           {/* GENERAL/ALL */}

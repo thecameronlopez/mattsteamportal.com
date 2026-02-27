@@ -5,11 +5,9 @@
   align-items: center;
 }
 
-.newPostContainer svg.returnTo {
-  font-size: 1.8rem;
+.returnTo {
   align-self: flex-start;
   margin-bottom: 2rem;
-  color: var(--linkText);
 }
 
 .newPostForm {

@@ -12,15 +12,12 @@ import { toAMPM } from "../../../utils/Helpers";
 import UserForm from "../../../components/Forms/User/UserForm";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faChevronLeft,
   faCirclePlus,
   faCircleXmark,
   faDeleteLeft,
 } from "@fortawesome/free-solid-svg-icons";
-import { useNavigate } from "react-router-dom";
 
 const Settings = () => {
-  const navigate = useNavigate();
   const [shifts, setShifts] = useState([]);
   const [users, setUsers] = useState([]);
   const [adding, setAdding] = useState({
@@ -76,11 +73,6 @@ const Settings = () => {
 
   return (
     <div className={styles.settingsContainer}>
-      <FontAwesomeIcon
-        icon={faChevronLeft}
-        onClick={() => navigate(-1)}
-        className={styles.goBack}
-      />
       <div className={styles.shiftSettings}>
         <FontAwesomeIcon
           icon={adding.shift ? faCircleXmark : faCirclePlus}

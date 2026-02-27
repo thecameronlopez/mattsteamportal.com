@@ -7,8 +7,9 @@
   gap: 3rem;
 }
 
-.settingsContainer .goBack {
-  width: 100%;
+.goBack {
+  flex: 0 0 100%;
+  margin-bottom: 0.5rem;
 }
 
 .settingsContainer > div {

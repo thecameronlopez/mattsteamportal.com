@@ -1,133 +1,193 @@
 .timeOffRequestMasterBlock {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-  width: 80%;
-  max-width: 600px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 20px 28px;
 }
 
-a.viewRequests {
-  color: var(--linkText);
-  align-self: flex-end;
-  text-decoration: underline;
+.goBack {
+  align-self: flex-start;
+  margin-bottom: 0.75rem;
 }
-a.viewRequests:hover {
+
+.timeOffRequestMasterBlock h1 {
+  margin: 0 0 6px;
+  line-height: 1.2;
+}
+
+.viewRequests {
+  color: var(--linkText);
+  font-weight: 600;
+  text-decoration: underline;
+  margin-bottom: 1rem;
+}
+
+.viewRequests:hover {
   color: var(--textPrimary);
 }
 
-.timeOffRequestMasterBlock form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
+.requestForm {
+  display: grid;
+  gap: 14px;
+  padding: 14px;
   width: 100%;
+  border: 1px solid var(--linkText);
+  border-radius: 12px;
+  background: var(--background);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
-.timeOffRequestMasterBlock form div {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  width: 100%;
-}
-
-.timeOffRequestMasterBlock form div input:not(input[type="radio"]) {
-  width: 100%;
-  height: 44px;
-  border-radius: 8px;
-  padding: 4px;
-}
-
-.timeOffRequestMasterBlock form div.ptoBlock {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
+.dateGrid {
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 10px;
 }
-.ptoBlock label {
-  font-size: 1.2rem;
-}
 
-.ptoBlock input[type="checkbox"].isPto {
-  border: 1px solid blue;
-  width: 1.5rem;
-}
-
-h3.reasonHeader {
-  font-size: 2rem;
-  margin-top: 2rem;
-}
-.timeOffRequestMasterBlock form div.reasonRadio {
+.field {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 2.5rem;
-  width: 180%;
+  gap: 6px;
 }
 
-.timeOffRequestMasterBlock form div.reasonRadio label {
+.field label {
+  font-size: 0.93rem;
+  font-weight: 600;
+  color: var(--textPrimary);
+}
+
+.field input,
+.otherReason {
+  width: 100%;
+  border: 1px solid var(--linkText);
+  border-radius: 10px;
+  padding: 10px 11px;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  background: var(--inputBackground);
+  color: var(--buttonPrimary);
+}
+
+.field input:focus,
+.otherReason:focus {
+  outline: none;
+  border-color: var(--linkText);
+  box-shadow: 0 0 0 3px rgba(109, 125, 178, 0.24);
+}
+
+.ptoBlock {
   display: flex;
-  flex-direction: column-reverse;
   align-items: center;
-  font-size: 24px;
-}
-.timeOffRequestMasterBlock form div.reasonRadio label input {
-  width: 30px;
-  height: 30px;
-  appearance: none;
-  border: 2px solid var(--textPrimary);
-  border-radius: 50%;
-  position: relative;
-}
-.timeOffRequestMasterBlock form div.reasonRadio label input:checked {
-  background-color: var(--linkText);
+  gap: 8px;
+  margin-top: 2px;
 }
 
-.timeOffRequestMasterBlock form div.reasonRadio textarea {
-  grid-column-start: 1;
-  grid-column-end: 5;
-  height: 10rem;
-  resize: none;
-  font-size: 22px;
-  padding: 6px;
-  border-radius: 8px;
+.ptoBlock label {
+  font-weight: 600;
+  color: var(--textPrimary);
 }
 
-.timeOffRequestMasterBlock button[type="submit"] {
-  font-size: 2.4rem;
-  padding: 14px 20px;
-  border: none;
-  border-radius: 8px;
-  background-color: var(--buttonSecondary);
-  color: var(--accent);
-  margin-top: 4rem;
-  box-shadow: -1px 1px 5px #222;
+.ptoBlock input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
 }
 
-@media screen and (max-width: 1400px) {
+.isPto {
+  width: 18px;
+  height: 18px;
+}
+
+.reasonRadio {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.reasonHeader {
+  margin: 2px 0 0;
+  font-weight: 700;
+  color: var(--textPrimary);
+}
+
+.reasonOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  border: 1px solid var(--linkText);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: var(--backgroundDark);
+  color: var(--textPrimary);
+}
+
+.reasonOption input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.otherReason {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.submitBtn {
+  justify-self: center;
+  min-width: 168px;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--textPrimary);
+  background: var(--buttonSecondary);
+  cursor: pointer;
+  margin-top: 14px;
+  transition:
+    background-color 120ms ease,
+    transform 120ms ease;
+}
+
+.submitBtn:hover {
+  background: var(--linkText);
+}
+
+.submitBtn:active {
+  transform: translateY(1px);
+}
+
+.submitBtn:disabled {
+  background: var(--textSecondary);
+  cursor: not-allowed;
+}
+
+@media (min-width: 700px) {
   .timeOffRequestMasterBlock {
-    flex-direction: column;
-    width: 100%;
-    overflow-x: hidden;
+    padding: 20px 24px 36px;
   }
 
-  .timeOffRequestMasterBlock form div {
-    width: 80%;
+  .requestForm {
+    gap: 16px;
+    padding: 18px;
   }
 
-  .timeOffRequestMasterBlock form div.reasonRadio {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
+  .dateGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
 
-  .timeOffRequestMasterBlock form div.reasonRadio textarea {
-    width: 100%;
+  .reasonRadio {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+}
+
+@media (min-width: 1000px) {
+  .timeOffRequestMasterBlock {
+    padding-top: 24px;
   }
 
-  .timeOffRequestMasterBlock button[type="submit"] {
-    font-size: 1.4rem;
-    margin-block: 2rem;
+  .reasonRadio {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }

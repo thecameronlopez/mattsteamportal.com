@@ -70,26 +70,28 @@ const TimeOffRequest = () => {
         </Link>
       )}
       <h1>Time Off Request</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="start_date">Start Date</label>
-          <input
-            type="date"
-            name="start_date"
-            value={formData.start_date}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="end_date">End Date</label>
-          <input
-            type="date"
-            name="end_date"
-            value={formData.end_date}
-            onChange={handleChange}
-            required
-          />
+      <form className={styles.requestForm} onSubmit={handleSubmit}>
+        <div className={styles.dateGrid}>
+          <div className={styles.field}>
+            <label htmlFor="start_date">Start Date</label>
+            <input
+              type="date"
+              name="start_date"
+              value={formData.start_date}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="end_date">End Date</label>
+            <input
+              type="date"
+              name="end_date"
+              value={formData.end_date}
+              onChange={handleChange}
+              required
+            />
+          </div>
         </div>
         <div className={styles.ptoBlock}>
           <label htmlFor="is_pto">Using PTO</label>
@@ -106,8 +108,9 @@ const TimeOffRequest = () => {
         {/* RADIO REASON SWITCHES */}
         <h3 className={styles.reasonHeader}>Reason</h3>
         <div className={styles.reasonRadio}>
-          <label htmlFor="reason">
+          <label htmlFor="reason-vacation" className={styles.reasonOption}>
             <input
+              id="reason-vacation"
               type="radio"
               name="reason"
               value="vacation"
@@ -116,8 +119,9 @@ const TimeOffRequest = () => {
             />
             Vacation
           </label>
-          <label htmlFor="reason">
+          <label htmlFor="reason-personal" className={styles.reasonOption}>
             <input
+              id="reason-personal"
               type="radio"
               name="reason"
               value="personal"
@@ -126,8 +130,9 @@ const TimeOffRequest = () => {
             />
             Personal Leave
           </label>
-          <label htmlFor="reason">
+          <label htmlFor="reason-funeral" className={styles.reasonOption}>
             <input
+              id="reason-funeral"
               type="radio"
               name="reason"
               value="funeral"
@@ -136,8 +141,9 @@ const TimeOffRequest = () => {
             />
             Funeral/Bereavement
           </label>
-          <label htmlFor="reason">
+          <label htmlFor="reason-jury-duty" className={styles.reasonOption}>
             <input
+              id="reason-jury-duty"
               type="radio"
               name="reason"
               value="jury-duty"
@@ -146,8 +152,9 @@ const TimeOffRequest = () => {
             />
             Jury Duty
           </label>
-          <label htmlFor="reason">
+          <label htmlFor="reason-family" className={styles.reasonOption}>
             <input
+              id="reason-family"
               type="radio"
               name="reason"
               value="family"
@@ -156,8 +163,9 @@ const TimeOffRequest = () => {
             />
             Family Reasons
           </label>
-          <label htmlFor="reason">
+          <label htmlFor="reason-medical" className={styles.reasonOption}>
             <input
+              id="reason-medical"
               type="radio"
               name="reason"
               value="medical"
@@ -166,8 +174,9 @@ const TimeOffRequest = () => {
             />
             Medical Leave
           </label>
-          <label htmlFor="reason">
+          <label htmlFor="reason-voting" className={styles.reasonOption}>
             <input
+              id="reason-voting"
               type="radio"
               name="reason"
               value="voting"
@@ -176,8 +185,9 @@ const TimeOffRequest = () => {
             />
             Voting
           </label>
-          <label htmlFor="reason">
+          <label htmlFor="reason-other" className={styles.reasonOption}>
             <input
+              id="reason-other"
               type="radio"
               name="reason"
               value="other"
@@ -188,6 +198,7 @@ const TimeOffRequest = () => {
           </label>
           {formData.reason === "other" && (
             <textarea
+              className={styles.otherReason}
               name="other_reason"
               value={formData.other_reason}
               onChange={handleChange}
@@ -195,7 +206,9 @@ const TimeOffRequest = () => {
             ></textarea>
           )}
         </div>
-        <button type="submit">Submit Time Off Request</button>
+        <button className={styles.submitBtn} type="submit">
+          Submit Time Off Request
+        </button>
       </form>
     </div>
   );

@@ -1,94 +1,187 @@
 .teamScheduleContainer {
   width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.9rem;
+  padding: 0.35rem 0.35rem 1.25rem;
 }
 
-.teamScheduleContainer .goBack {
-  margin-block: 0.5rem;
-  font-size: 1.5rem;
+.goBack {
+  margin-block: 0.25rem;
   align-self: flex-start;
 }
 
-p.teamWeekHeader {
-  font-size: 18px;
+.teamScheduleContainer select {
+  width: min(360px, 100%);
+  border: 1px solid var(--linkText);
+  border-radius: 10px;
+  background: var(--background);
+  color: var(--textPrimary);
+  padding: 0.5rem 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.teamWeekHeader {
+  font-size: 1.2rem;
+  font-weight: 800;
   align-self: center;
+  color: var(--textPrimary);
 }
 
 .teamWeekNavi {
   align-self: center;
   display: flex;
-  gap: 2rem;
+  gap: 0.75rem;
 }
 
 .teamWeekNavi button {
-  background-color: transparent;
-  box-shadow: unset;
-  font-size: 1.5rem;
+  min-width: 44px;
+  min-height: 40px;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--linkText);
+  border-radius: 10px;
+  background: var(--background);
+  color: var(--textPrimary);
+  box-shadow: none;
+  font-size: 1rem;
+}
+
+.teamWeekNavi button:hover {
+  background: var(--linkText);
 }
 
 .scheduleList {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-  padding: 0.5rem;
+  gap: 1rem;
+}
+
+.scheduleItem {
+  border: 1px solid var(--linkText);
+  border-radius: 12px;
+  background: var(--background);
+  padding: 0.7rem;
+}
+
+.scheduleItem h4 {
+  margin-bottom: 0.55rem;
+  font-size: 1.05rem;
+  color: var(--textPrimary);
 }
 
 .userWeek {
-  border: 1px solid var(--textPrimary);
+  border: 1px solid var(--textSecondary);
+  border-radius: 10px;
+  overflow: hidden;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .userDay {
-  border: 1px solid var(--textSecondary);
-  font-size: 12px;
-  padding: 4px 10px;
+  border: 1px solid rgba(137, 153, 175, 0.35);
+  font-size: 0.8rem;
+  padding: 0.5rem;
+  min-height: 92px;
+  background: var(--backgroundDark);
 }
 
-.userDay .dayHeader {
+.dayHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 4px;
+  margin-bottom: 0.35rem;
 }
-.userDay .dayHeader p:first-child {
+
+.dayHeader p:first-child {
   font-weight: 800;
   text-decoration: underline;
   color: var(--linkText);
 }
 
-.userDay .dayHeader svg {
+.dayHeader svg {
   color: var(--textSecondary);
-  font-size: 1.1rem;
+  font-size: 1rem;
+  cursor: pointer;
 }
 
-.userDay .dayNote {
-  font-size: 10px;
+.dayHeader svg:hover {
+  color: var(--textPrimary);
+}
+
+.offDay {
+  color: var(--textSecondary);
+  font-style: italic;
+}
+
+.dayNote {
+  font-size: 0.7rem;
   font-style: italic;
   color: var(--textSecondary);
-  margin-top: 4px;
+  margin-top: 0.35rem;
   cursor: alias;
 }
 
 .noteInput {
   display: flex;
-  gap: 10px;
-  margin-block: 10px;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
 }
+
 .noteInput input {
   border-radius: 8px;
-  padding: 4px;
-  flex-grow: 0.5;
+  border: 1px solid var(--linkText);
+  background: var(--inputBackground);
+  color: var(--buttonPrimary);
+  padding: 0.35rem 0.5rem;
+  width: 100%;
+}
+
+.noteInput input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(109, 125, 178, 0.24);
 }
 
 .noteInput button {
-  padding: 4px 8px;
+  border: 1px solid var(--linkText);
   border-radius: 8px;
-  background-color: var(--buttonBackground);
-  color: var(--buttonText);
-  box-shadow: var(--buttonBoxShadow);
-  font-weight: 600;
+  background: var(--buttonSecondary);
+  color: var(--textPrimary);
+  box-shadow: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  width: fit-content;
+  padding: 0.35rem 0.6rem;
+}
+
+.noteInput button:hover {
+  background: var(--linkText);
+}
+
+@media (min-width: 760px) {
+  .teamScheduleContainer {
+    padding-inline: 0.6rem;
+  }
+
+  .userWeek {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .userDay {
+    min-height: 102px;
+    font-size: 0.85rem;
+  }
+
+  .noteInput {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .noteInput button {
+    min-height: 32px;
+  }
 }

@@ -1,131 +1,292 @@
 .userHomeContainer {
   width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 1rem;
 }
 
 .userHomeHeader {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.8rem;
-  width: 100%;
-  padding-inline: 0.5rem;
+  gap: 0.75rem;
+  padding: 0.65rem;
+  border: 1px solid var(--linkText);
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(109, 125, 178, 0.2) 0%,
+      rgba(30, 30, 30, 0.95) 45%
+    ),
+    var(--background);
 }
 
-.userHomeHeader h1 {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--backgroundDark);
-  text-shadow: -1px 1px 10px var(--buttonSecondary);
-}
-.userHomeHeader h1 span {
-  margin-left: 0.6rem;
-  cursor: pointer;
-  color: var(--buttonSecondary);
-  border-radius: 50%;
-}
-.userNavi {
-  display: flex;
-  flex: 1;
-  justify-content: space-evenly;
-  /* gap: 15px; */
-  border: 2px solid var(--background);
-  box-shadow: inset 1px 1px 3px #000, inset -1px -1px 2px #111;
-  padding: 0.6rem 0.8rem;
-  border-radius: 8px;
+.panelHeader {
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
-.userNavi svg {
-  font-size: 1.8rem;
-  color: var(--buttonSecondary);
-  position: relative;
+
+.welcomeTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: clamp(1.2rem, 2vw, 1.6rem);
+  font-weight: 800;
+  color: var(--textPrimary);
 }
-.userNavi svg:hover {
+
+.panelHeaderActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.profileInfo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--textSecondary);
+  font-size: 1.02rem;
+  line-height: 1;
+  width: auto;
+  height: auto;
+  padding: 0;
+  cursor: pointer;
+}
+
+.profileInfo:hover {
   color: var(--linkText);
 }
 
-.userHomeHeader .switcher {
+.caretToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--linkText);
+  border-radius: 9px;
+  background: var(--backgroundDark);
+  box-shadow: none;
+  color: var(--textSecondary);
+  font-size: 0.95rem;
+  line-height: 1;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.caretToggle:hover {
+  background: var(--linkText);
+  color: var(--textPrimary);
+}
+
+.userNavi {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.userNaviAdmin {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.userNaviEmployee {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.navAction {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  min-height: 44px;
+  border: 1px solid var(--linkText);
+  border-radius: 10px;
+  background: var(--backgroundDark);
+  color: var(--textPrimary);
+  box-shadow: none;
+  font-size: 0.86rem;
+  font-weight: 700;
+  padding: 0.42rem 0.62rem;
+}
+
+.navActionFullRow {
+  grid-column: 1 / -1;
   justify-content: center;
 }
 
-.userHomeHeader .switcher button {
-  background-color: var(--buttonSecondary);
-  box-shadow: unset;
-  border-radius: 0;
-  border: 1px solid var(--linkText);
+.navAction:hover {
+  background: var(--linkText);
+}
+
+.navAction svg {
   font-size: 1rem;
-  padding: 8px 2rem;
+  flex: 0 0 auto;
 }
-.userHomeHeader .switcher button:first-child {
-  border-radius: 8px 0 0 8px;
+
+.unreadDot {
+  margin-left: auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.18);
+  flex: 0 0 auto;
 }
-.userHomeHeader .switcher button:last-child {
-  border-radius: 0 8px 8px 0;
+
+.switcher {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: min(430px, 100%);
+  margin: 0 auto;
+}
+
+.switcher button {
+  min-height: 42px;
+  border: 1px solid var(--linkText);
+  border-right: 0;
+  border-radius: 0;
+  background: var(--backgroundDark);
+  color: var(--textPrimary);
+  box-shadow: none;
+  font-size: 0.95rem;
+}
+
+.switcher button:first-child {
+  border-radius: 10px 0 0 10px;
+}
+
+.switcher button:last-child {
+  border-right: 1px solid var(--linkText);
+  border-radius: 0 10px 10px 0;
+}
+
+.switcher button:hover {
+  background: var(--linkText);
 }
 
 .currentWeekSchedule {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  width: 90%;
-  border: 1px solid var(--textPrimary);
-  border-radius: 12px;
-  box-shadow: -1px 1px 3px var(--linkText);
-  padding: 2px;
+  width: 100%;
+  border: 1px solid var(--linkText);
+  border-radius: 14px;
+  background: var(--background);
+  overflow: hidden;
 }
 
-.currentWeekSchedule .dateHeader {
-  font-size: 24px;
-  font-weight: 700;
-  background-color: var(--backgroundDark);
+.dateHeader {
   width: 100%;
-  border-radius: 8px 8px 0 0;
-  padding: 10px;
-  align-self: center;
-  text-align: end;
+  padding: 0.62rem 0.78rem;
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  font-weight: 800;
+  color: var(--textPrimary);
+  background: var(--backgroundDark);
+  border-bottom: 1px solid var(--linkText);
+}
+
+.weekGrid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
+  padding: 0.6rem;
 }
 
 .dayOfWeek {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  width: 100%;
-  background-color: var(--background);
+  border: 1px solid var(--textSecondary);
+  border-radius: 12px;
+  background: linear-gradient(
+    150deg,
+    rgba(109, 125, 178, 0.08),
+    rgba(42, 40, 41, 0.9) 45%
+  );
+  overflow: hidden;
 }
 
 .dayOfWeek h3 {
-  display: flex;
-  align-items: flex-end;
-  width: 100%;
-  justify-content: space-between;
-  background-color: var(--buttonSecondary);
+  padding: 0.5rem 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
   color: var(--textPrimary);
-  padding: 0.3rem 0.5rem;
-}
-.dayOfWeek:first-child h3 {
-  border-radius: 8px 8px 0 0;
-}
-.dayOfWeek h3 small {
-  color: var(--backgroundDark);
+  background: rgba(137, 153, 175, 0.2);
+  border-bottom: 1px solid rgba(137, 153, 175, 0.35);
 }
 
 .dayOfWeek > div {
+  min-height: 92px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
+  gap: 0.4rem;
+  padding: 0.65rem;
 }
-.dayOfWeek > div > p {
-  padding: 2rem 1rem;
-  font-size: 1.5rem;
+
+.shiftTime {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--textPrimary);
+  text-align: center;
 }
 
 .shiftNote {
   width: 100%;
   text-align: center;
-  font-size: 14px;
+  font-size: 0.8rem;
+  color: var(--textSecondary);
+  line-height: 1.3;
+}
+
+.offDay {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--linkText);
+}
+
+.noShift {
+  font-size: 0.92rem;
+  color: var(--textSecondary);
+}
+
+@media (min-width: 760px) {
+  .userHomeContainer {
+    gap: 1.2rem;
+  }
+
+  .userHomeHeader {
+    padding: 0.8rem;
+  }
+
+  .userNaviAdmin {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .userNaviEmployee {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .weekGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .userHomeHeader {
+    gap: 0.85rem;
+  }
+
+  .weekGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
