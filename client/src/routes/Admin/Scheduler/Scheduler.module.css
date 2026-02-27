@@ -34,6 +34,10 @@ CONTROL BAR ROW 1
   font-weight: 800;
 }
 
+.weekLabel {
+  letter-spacing: 0.01em;
+}
+
 .controlBar .cbRow1 .weekShift {
   display: flex;
   align-items: center;
@@ -64,26 +68,44 @@ CONTROL BAR ROW 1
     CONTROL BAR ROW 2
 */
 .controlBar .cbRow2 {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(170px, 220px) 1fr auto;
+  align-items: end;
+  gap: 0.8rem;
   padding: 1rem;
   border-top: 1px solid var(--textPrimary);
-  position: relative;
+}
+
+.controlField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.controlField label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--textSecondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .controlBar .cbRow2 select {
-  width: fit-content;
-  height: 34px;
+  width: 100%;
+  min-height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--linkText);
+  background: var(--backgroundDark);
+  color: var(--textPrimary);
+  padding: 0.25rem 0.45rem;
 }
 
 .controlBar .cbRow2 .shiftControls {
-  flex: 1;
-  padding-inline: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10rem;
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(230px, 280px) minmax(180px, 240px);
+  align-items: end;
+  gap: 0.8rem;
 }
 
 .shiftControls .locationToggle {
@@ -139,15 +161,86 @@ CONTROL BAR ROW 1
 .controlBar .cbRow2 button.settingsButton {
   background-color: var(--buttonSecondary);
   color: var(--backgroundDark);
-  font-size: 1.6rem;
-  border: none;
-  border-radius: 8px;
-  padding: 6px 24px;
-  box-shadow: -1px 1px 3px #333;
 }
 
-.controlBar .cbRow2 .shiftControls button.deleteShiftButton {
+.utilityButtons {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.utilityButtons button {
+  min-height: 36px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.utilityButtons button.settingsButton {
+  border-color: var(--linkText);
+  color: var(--textPrimary);
+  background: var(--backgroundDark);
+}
+
+.utilityButtons button.settingsButton:hover {
+  background: var(--linkText);
+}
+
+.utilityButtons button.settingsButton span {
+  display: inline;
+}
+
+.utilityButtons button.deleteShiftButton {
   background-color: darkred;
+}
+.utilityButtons button.deleteShiftButton:hover:not(:disabled) {
+  background-color: #b91c1c;
+}
+
+.legendBar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  gap: 0.45rem 0.9rem;
+  padding: 0 1rem 0.75rem;
+  border-top: 1px solid rgba(249, 249, 249, 0.2);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--textSecondary);
+}
+
+.legendSwatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.legendCommitted {
+  background: var(--background);
+}
+
+.legendStaged {
+  background: rgba(137, 153, 175, 0.45);
+}
+
+.legendPending {
+  background: #ffd57f;
+}
+
+.legendApproved {
+  background: #f0d6d9;
 }
 
 /*
@@ -243,10 +336,60 @@ span:hover {
   justify-content: space-between;
   align-items: center;
 }
+.userNameBlock {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
 .gridCell.employeeCell h4 div:last-child {
   font-size: 1.4rem;
 }
 .gridCell.employeeCell h4 div:last-child svg:hover {
+  color: var(--linkText);
+}
+
+.employeeCellCollapsed {
+  border-bottom: 1px solid rgba(249, 249, 249, 0.25);
+}
+
+.rowActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.expandUserBtn {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--linkText);
+  border-radius: 6px;
+  background: var(--backgroundDark);
+  color: var(--textPrimary);
+  box-shadow: none;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.expandUserBtn:hover {
+  background: var(--linkText);
+}
+
+.editInfoBtn,
+.mobileEditInfoBtn {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--textSecondary);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+
+.editInfoBtn:hover,
+.mobileEditInfoBtn:hover {
   color: var(--linkText);
 }
 
@@ -286,6 +429,29 @@ span:hover {
   font-size: 0.6rem;
   font-weight: 700;
   color: #b00020;
+  letter-spacing: 0.04em;
+}
+
+.gridCell.pendingTimeOffCell {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255, 248, 225, 0.95),
+    rgba(255, 248, 225, 0.95) 8px,
+    rgba(255, 243, 205, 0.95) 8px,
+    rgba(255, 243, 205, 0.95) 16px
+  );
+  border: 1px solid #ffcf66;
+  position: relative;
+}
+
+.gridCell.pendingTimeOffCell::after {
+  content: "PENDING";
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #a15c00;
   letter-spacing: 0.04em;
 }
 
@@ -337,17 +503,34 @@ small.mobileDateRead {
   margin-bottom: 0.6rem;
 }
 
+.mobileUserHeaderActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.mobileExpandBtn {
+  background: var(--backgroundDark);
+  border: 1px solid var(--linkText);
+  color: var(--textPrimary);
+  border-radius: 8px;
+  box-shadow: none;
+  font-size: 0.82rem;
+  padding: 4px 8px;
+}
+
+.mobileExpandBtn:hover {
+  background: var(--linkText);
+}
+
 .mobileUserHeader p {
   font-weight: 700;
 }
 
-.mobileUserEdit {
-  background-color: var(--buttonSecondary);
-  color: var(--backgroundDark);
-  border-radius: 8px;
-  font-size: 0.85rem;
-  box-shadow: none;
-  padding: 4px 10px;
+.mobileUserName {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .mobileDayList {
@@ -413,23 +596,40 @@ small.mobileDateRead {
   }
 
   .controlBar .cbRow2 {
-    flex-direction: column;
-    gap: 0.8rem;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 0.65rem;
   }
 
   .controlBar .cbRow2 .shiftControls {
-    width: 100%;
-    gap: 0.8rem;
-    flex-wrap: wrap;
-    padding-inline: 0;
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
   }
 
   .shiftControls .locationToggle {
     width: 100%;
   }
 
-  .controlBar .cbRow2 .shiftControls > select {
+  .controlBar .cbRow2 .shiftControls > .controlField select {
     width: 100%;
+  }
+
+  .utilityButtons {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .utilityButtons button {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .utilityButtons button.settingsButton span {
+    display: none;
+  }
+
+  .legendBar {
+    padding-inline: 0.75rem;
   }
 
   .scheduleBlock {

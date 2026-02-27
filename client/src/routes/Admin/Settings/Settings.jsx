@@ -73,11 +73,24 @@ const Settings = () => {
 
   return (
     <div className={styles.settingsContainer}>
-      <div className={styles.shiftSettings}>
+      <div className={`${styles.settingsPanel} ${styles.shiftSettings}`}>
+        <div className={styles.sectionHeader}>
+          <h3 className={styles.sectionTitle}>Shifts</h3>
+          <button
+            type="button"
+            className={styles.toggleAddBtn}
+            onClick={() => setAdding((prev) => ({ ...prev, shift: !prev.shift }))}
+          >
+            <FontAwesomeIcon
+              icon={adding.shift ? faCircleXmark : faCirclePlus}
+              className={adding.shift ? styles.naw : styles.yaw}
+            />
+            <span>{adding.shift ? "Close" : "Add Shift"}</span>
+          </button>
+        </div>
         <FontAwesomeIcon
           icon={adding.shift ? faCircleXmark : faCirclePlus}
-          className={adding.shift ? styles.naw : styles.yaw}
-          onClick={() => setAdding((prev) => ({ ...prev, shift: !prev.shift }))}
+          className={styles.hiddenToggle}
         />
         {adding.shift && (
           <div className={styles.addShiftContainer}>
@@ -85,16 +98,15 @@ const Settings = () => {
           </div>
         )}
         <div className={styles.shiftItems}>
-          <h3>Shifts</h3>
           {shifts
             .filter((s) => s.id !== 9999 && s.id !== 9998)
             .map((shift, index) => (
-              <div key={index}>
-                <p>{shift.title}</p>
-                <p>
+              <div key={index} className={styles.itemCard}>
+                <p className={styles.itemTitle}>{shift.title}</p>
+                <p className={styles.itemMeta}>
                   Start Time: <span>{toAMPM(shift.start_time)}</span>
                 </p>
-                <p>
+                <p className={styles.itemMeta}>
                   End Time: <span>{toAMPM(shift.end_time)}</span>
                 </p>
                 <FontAwesomeIcon
@@ -104,13 +116,29 @@ const Settings = () => {
                 />
               </div>
             ))}
+          {shifts.filter((s) => s.id !== 9999 && s.id !== 9998).length === 0 && (
+            <p className={styles.emptyState}>No shifts found.</p>
+          )}
         </div>
       </div>
-      <div className={styles.userSettings}>
+      <div className={`${styles.settingsPanel} ${styles.userSettings}`}>
+        <div className={styles.sectionHeader}>
+          <h3 className={styles.sectionTitle}>Users</h3>
+          <button
+            type="button"
+            className={styles.toggleAddBtn}
+            onClick={() => setAdding((prev) => ({ ...prev, user: !prev.user }))}
+          >
+            <FontAwesomeIcon
+              icon={adding.user ? faCircleXmark : faCirclePlus}
+              className={adding.user ? styles.naw : styles.yaw}
+            />
+            <span>{adding.user ? "Close" : "Add User"}</span>
+          </button>
+        </div>
         <FontAwesomeIcon
           icon={adding.user ? faCircleXmark : faCirclePlus}
-          className={adding.user ? styles.naw : styles.yaw}
-          onClick={() => setAdding((prev) => ({ ...prev, user: !prev.user }))}
+          className={styles.hiddenToggle}
         />
         {adding.user && (
           <div className={styles.addUserContainer}>
@@ -118,11 +146,10 @@ const Settings = () => {
           </div>
         )}
         <div className={styles.userItems}>
-          <h3>Users</h3>
           {users.map((user, index) => (
-            <div key={index}>
-              <p>{user.first_name}</p>
-              <p>{user.email}</p>
+            <div key={index} className={styles.itemCard}>
+              <p className={styles.itemTitle}>{user.first_name}</p>
+              <p className={styles.itemMeta}>{user.email}</p>
               <FontAwesomeIcon
                 icon={faDeleteLeft}
                 className={styles.deleteButton}
@@ -130,6 +157,7 @@ const Settings = () => {
               />
             </div>
           ))}
+          {users.length === 0 && <p className={styles.emptyState}>No users found.</p>}
         </div>
       </div>
     </div>

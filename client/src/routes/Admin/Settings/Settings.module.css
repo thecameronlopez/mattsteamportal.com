@@ -1,162 +1,132 @@
 .settingsContainer {
   width: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 3rem;
-}
-
-.goBack {
-  flex: 0 0 100%;
-  margin-bottom: 0.5rem;
-}
-
-.settingsContainer > div {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1rem;
-  border: 3px solid var(--textPrimary);
-  border-radius: 12px;
-  position: relative;
-  min-width: 400px;
-}
-
-.settingsContainer > div svg.yaw {
-  color: darkgreen;
-  font-size: 2rem;
-  height: 30px;
-  width: 30px;
-  position: absolute;
-  top: -20px;
-  right: -20px;
-  background-color: green;
-  border-radius: 50%;
-}
-.settingsContainer > div svg.yaw:hover {
-  color: green;
-  background-color: darkgreen;
-  font-size: 2.1rem;
-}
-
-.settingsContainer > div svg.naw {
-  color: darkred;
-  font-size: 2rem;
-  height: 30px;
-  width: 30px;
-  position: absolute;
-  top: -20px;
-  right: -20px;
-  background-color: red;
-  border-radius: 50%;
-}
-.settingsContainer > div svg.naw:hover {
-  color: red;
-  background-color: darkred;
-  font-size: 2.1rem;
-}
-
-.shiftSettings {
-  gap: 3rem;
-}
-
-.shiftItems {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 1rem;
-  width: 100%;
 }
 
-.shiftItems > div {
-  border: 1px solid var(--textPrimary);
-  border-radius: 8px;
-  padding: 0.6rem;
-  position: relative;
+.settingsPanel {
+  border: 1px solid var(--linkText);
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(109, 125, 178, 0.12) 0%,
+      rgba(30, 30, 30, 0.94) 45%
+    ),
+    var(--background);
+  padding: 0.75rem;
+  min-width: 0;
 }
 
-.shiftItems > div svg.deleteButton {
-  position: absolute;
-  top: -8px;
-  right: -6px;
-  font-size: 24px;
-  color: darkred;
-}
-.shiftItems > div svg.deleteButton:hover {
-  color: red;
-  font-size: 28px;
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
-.shiftItems > div p:first-child {
-  font-size: 20px;
+.sectionTitle {
+  font-size: 1.15rem;
   font-weight: 800;
-  color: var(--buttonSecondary);
+  color: var(--textPrimary);
 }
 
-.userSettings {
-  gap: 3rem;
+.toggleAddBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--linkText);
+  border-radius: 9px;
+  padding: 0.35rem 0.55rem;
+  background: var(--backgroundDark);
+  color: var(--textPrimary);
+  box-shadow: none;
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
+.toggleAddBtn:hover {
+  background: var(--linkText);
+}
+
+.hiddenToggle {
+  display: none;
+}
+
+.yaw {
+  color: #2ecc71;
+  font-size: 1rem;
+}
+
+.naw {
+  color: #ef4444;
+  font-size: 1rem;
+}
+
+.addShiftContainer,
+.addUserContainer {
+  margin-bottom: 0.85rem;
+}
+
+.shiftItems,
 .userItems {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  width: 100%;
+  gap: 0.65rem;
 }
 
-.userItems > div {
-  border: 1px solid var(--textPrimary);
-  border-radius: 8px;
-  padding: 0.6rem;
+.itemCard {
+  border: 1px solid var(--textSecondary);
+  border-radius: 10px;
+  background: var(--backgroundDark);
+  padding: 0.65rem 0.75rem;
   position: relative;
 }
 
-.userItems > div p:first-child {
-  font-size: 20px;
+.itemTitle {
+  font-size: 1rem;
   font-weight: 800;
-  color: var(--buttonSecondary);
+  color: var(--textPrimary);
+  margin-bottom: 0.25rem;
+  padding-right: 2rem;
 }
 
-.userItems > div svg.deleteButton {
+.itemMeta {
+  color: var(--textSecondary);
+  font-size: 0.88rem;
+}
+
+.itemMeta span {
+  color: var(--textPrimary);
+}
+
+.deleteButton {
   position: absolute;
-  top: -8px;
-  right: -6px;
-  font-size: 24px;
-  color: darkred;
-}
-.userItems > div svg.deleteButton:hover {
-  color: red;
-  font-size: 28px;
+  top: 0.55rem;
+  right: 0.55rem;
+  font-size: 1rem;
+  color: #ef4444;
+  cursor: pointer;
 }
 
-@media screen and (max-width: 450px) {
+.deleteButton:hover {
+  color: #f87171;
+}
+
+.emptyState {
+  border: 1px dashed var(--textSecondary);
+  border-radius: 10px;
+  padding: 0.75rem;
+  color: var(--textSecondary);
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+@media screen and (min-width: 980px) {
   .settingsContainer {
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-  }
-
-  .settingsContainer > div {
-    padding: 10px;
-    min-width: unset;
-    width: 100%;
-    max-height: 400px;
-    overflow: auto;
-  }
-
-  .settingsContainer > div svg.yaw {
-    top: 2px;
-    right: 2px;
-    z-index: 100;
-  }
-  .settingsContainer > div svg.naw {
-    top: 2px;
-    right: 2px;
-    z-index: 100;
-  }
-
-  .shiftItems,
-  .userItems {
-    width: 90%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.2rem;
   }
 }

@@ -1,31 +1,75 @@
 .shiftForm {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 1rem;
-  border: 1px solid var(--textPrimary);
-  border-radius: 8px;
-  padding: 1rem;
+  gap: 0.72rem;
+  border: 1px solid var(--textSecondary);
+  border-radius: 11px;
+  background: var(--backgroundDark);
+  padding: 0.72rem;
+}
+
+.shiftForm h2 {
+  font-size: 1rem;
+  color: var(--textPrimary);
+}
+
+.autoTitleToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  color: var(--textSecondary);
+}
+
+.autoTitleToggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
 }
 
 .shiftForm div {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  gap: 0.25rem;
 }
 
 .shiftForm div label {
-  font-size: 12px;
+  font-size: 0.82rem;
+  color: var(--textSecondary);
+  font-weight: 700;
 }
 
 .shiftForm div input {
-  font-size: 24px;
-  padding: 4px;
-  border-radius: 8px;
+  min-height: 38px;
+  border: 1px solid var(--linkText);
+  border-radius: 9px;
+  font-size: 0.92rem;
+  padding: 0.45rem 0.6rem;
+  color: var(--buttonPrimary);
+  background: var(--inputBackground);
+}
+
+.shiftForm div input:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.shiftForm div input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(109, 125, 178, 0.24);
 }
 
 .shiftForm button[type="submit"] {
-  align-self: center;
-  margin-top: 1rem;
-  font-size: 28px;
+  margin-top: 0.2rem;
+  min-height: 38px;
+  border: 1px solid var(--linkText);
+  border-radius: 9px;
+  background: var(--buttonSecondary);
+  color: var(--textPrimary);
+  font-size: 0.88rem;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.shiftForm button[type="submit"]:hover {
+  background: var(--linkText);
 }

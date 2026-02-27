@@ -70,7 +70,7 @@ const UserForm = ({ onNewUser }) => {
 
   return (
     <form className={styles.newUserForm} onSubmit={handleSubmit}>
-      <h2 style={{ alignSelf: "flex-start" }}>Add New User</h2>
+      <h2>Add New User</h2>
       <div>
         <label htmlFor="first_name">First Name</label>
         <input

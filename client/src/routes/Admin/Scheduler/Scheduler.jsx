@@ -23,7 +23,9 @@ import { faSquarePlus, faUser } from "@fortawesome/free-regular-svg-icons";
 import {
   faBackwardStep,
   faCalendarWeek,
-  faEllipsis,
+  faChevronDown,
+  faChevronUp,
+  faCircleInfo,
   faForwardStep,
   faGears,
   faNotdef,
@@ -56,7 +58,11 @@ const Scheduler = () => {
     return stored ? JSON.parse(stored) : {};
   });
   const [isLC, setIsLC] = useState(true);
+  const [expandedUsers, setExpandedUsers] = useState({});
   const currentLocation = isLC ? "lake_charles" : "jennings";
+
+  const hasOverlappingRequest = (req, dateStr) =>
+    req.start_date <= dateStr && dateStr <= req.end_date;
 
   useEffect(() => {
     localStorage.setItem(
@@ -137,11 +143,11 @@ const Scheduler = () => {
             ? "committed"
             : "empty";
 
-        const timeOffRequest = user.time_off_requests?.find(
-          (req) =>
-            req.start_date <= dateStr &&
-            dateStr <= req.end_date &&
-            req.status == "approved",
+        const approvedTimeOffRequest = user.time_off_requests?.find(
+          (req) => hasOverlappingRequest(req, dateStr) && req.status === "approved",
+        );
+        const pendingTimeOffRequest = user.time_off_requests?.find(
+          (req) => hasOverlappingRequest(req, dateStr) && req.status === "pending",
         );
 
         return {
@@ -151,8 +157,10 @@ const Scheduler = () => {
           schedule_id: scheduledShift?.id ?? null,
           location:
             pending?.location ?? scheduledShift?.location ?? currentLocation,
-          is_time_off: !!timeOffRequest,
-          time_off_request: timeOffRequest || null,
+          is_time_off: !!approvedTimeOffRequest,
+          time_off_request: approvedTimeOffRequest || null,
+          has_pending_time_off: !!pendingTimeOffRequest,
+          pending_time_off_request: pendingTimeOffRequest || null,
           status: state,
           custom_start_time:
             pending?.custom_start_time ??
@@ -256,7 +264,37 @@ const Scheduler = () => {
 
   const submitSchedule = async () => {
     if (!confirm("Submit Schedule?")) return;
-    const assignments = Object.values(pendingAssignments);
+
+    const conflicts = [];
+    const assignments = [];
+
+    for (const [key, assignment] of Object.entries(pendingAssignments)) {
+      const [userIdRaw, dateStr] = key.split("|");
+      const userId = Number(userIdRaw);
+      const user = departments.all.find((u) => u.id === userId);
+      const approvedConflict = user?.time_off_requests?.some(
+        (req) => hasOverlappingRequest(req, dateStr) && req.status === "approved",
+      );
+
+      if (approvedConflict) {
+        conflicts.push(key);
+        continue;
+      }
+      assignments.push(assignment);
+    }
+
+    if (conflicts.length > 0) {
+      setPendingAssignments((prev) => {
+        const next = { ...prev };
+        conflicts.forEach((key) => {
+          delete next[key];
+        });
+        return next;
+      });
+      toast.error(
+        `${conflicts.length} staged assignment(s) removed due to newly approved time off.`,
+      );
+    }
 
     if (assignments.length === 0) {
       toast.error("No changes to submit");
@@ -367,6 +405,13 @@ const Scheduler = () => {
   };
 
   const getShiftByID = (id) => shifts.find((s) => s.id === id);
+
+  const toggleUserRow = (userId) => {
+    setExpandedUsers((prev) => ({
+      ...prev,
+      [userId]: !prev[userId],
+    }));
+  };
   //
   //
   //
@@ -384,7 +429,7 @@ const Scheduler = () => {
     <div className={styles.schedulerMaster}>
       <div className={styles.controlBar}>
         <div className={styles.cbRow1}>
-          <p>{getWeekHeader()}</p>
+          <p className={styles.weekLabel}>{getWeekHeader()}</p>
           <div className={styles.weekShift}>
             <button onClick={goPrev}>
               <FontAwesomeIcon icon={faBackwardStep} />
@@ -398,17 +443,21 @@ const Scheduler = () => {
           </div>
         </div>
         <div className={styles.cbRow2}>
-          <select
-            name="department"
-            value={selectedDpt}
-            onChange={(e) => setSelectedDpt(e.target.value)}
-          >
-            {Object.keys(departments).map((dpt, index) => (
-              <option value={dpt} key={index}>
-                {dpt}
-              </option>
-            ))}
-          </select>
+          <div className={styles.controlField}>
+            <label htmlFor="scheduler-department">Department</label>
+            <select
+              id="scheduler-department"
+              name="department"
+              value={selectedDpt}
+              onChange={(e) => setSelectedDpt(e.target.value)}
+            >
+              {Object.keys(departments).map((dpt, index) => (
+                <option value={dpt} key={index}>
+                  {dpt}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className={styles.shiftControls}>
             <div className={styles.locationToggle}>
               <div
@@ -434,18 +483,24 @@ const Scheduler = () => {
               />
               <label htmlFor="jennings">Jennings</label>
             </div>
-            <select
-              name="shift"
-              value={selectedShift}
-              onChange={(e) => setSelectedShift(Number(e.target.value))}
-            >
-              <option value="">--select shift--</option>
-              {shifts?.map(({ id, title }) => (
-                <option value={id} key={id}>
-                  {title}
-                </option>
-              ))}
-            </select>
+            <div className={styles.controlField}>
+              <label htmlFor="scheduler-shift">Shift</label>
+              <select
+                id="scheduler-shift"
+                name="shift"
+                value={selectedShift}
+                onChange={(e) => setSelectedShift(Number(e.target.value))}
+              >
+                <option value="">--select shift--</option>
+                {shifts?.map(({ id, title }) => (
+                  <option value={id} key={id}>
+                    {title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className={styles.utilityButtons}>
             <button
               className={styles.deleteShiftButton}
               onClick={ClearWeek}
@@ -454,13 +509,32 @@ const Scheduler = () => {
               Clear Schedule
               <FontAwesomeIcon icon={faTrash} />
             </button>
+            <button
+              className={styles.settingsButton}
+              onClick={() => navigate("/settings")}
+            >
+              <FontAwesomeIcon icon={faGears} />
+              <span>Settings</span>
+            </button>
           </div>
-          <button
-            className={styles.settingsButton}
-            onClick={() => navigate("/settings")}
-          >
-            <FontAwesomeIcon icon={faGears} />
-          </button>
+        </div>
+        <div className={styles.legendBar}>
+          <span className={styles.legendItem}>
+            <span className={clsx(styles.legendSwatch, styles.legendCommitted)} />
+            Committed
+          </span>
+          <span className={styles.legendItem}>
+            <span className={clsx(styles.legendSwatch, styles.legendStaged)} />
+            Staged
+          </span>
+          <span className={styles.legendItem}>
+            <span className={clsx(styles.legendSwatch, styles.legendPending)} />
+            Pending R/O
+          </span>
+          <span className={styles.legendItem}>
+            <span className={clsx(styles.legendSwatch, styles.legendApproved)} />
+            Approved R/O
+          </span>
         </div>
       </div>
       {/* END CONTROL BAR */}
@@ -494,36 +568,55 @@ const Scheduler = () => {
         {scheduleRows.map((userRow, rowIndex) => (
           <div className={styles.userRow} key={rowIndex}>
             {/* Employee Name */}
-            <div className={clsx(styles.gridCell, [styles.employeeCell])}>
+            <div
+              className={clsx(
+                styles.gridCell,
+                styles.employeeCell,
+                !expandedUsers[userRow[0].user_id] && styles.employeeCellCollapsed,
+              )}
+            >
               <h4>
-                <div>
+                <div className={styles.userNameBlock}>
                   <span>
                     <FontAwesomeIcon icon={faUser} />
                   </span>
                   <span>
-                    {
-                      departments[selectedDpt].find(
-                        (u) => u.id === userRow[0].user_id,
-                      )?.first_name
-                    }{" "}
-                    {
-                      departments[selectedDpt].find(
-                        (u) => u.id === userRow[0].user_id,
-                      )?.last_name[0]
-                    }
+                    {departments[selectedDpt].find((u) => u.id === userRow[0].user_id)
+                      ?.first_name}{" "}
+                    {departments[selectedDpt].find((u) => u.id === userRow[0].user_id)
+                      ?.last_name[0]}
                     {"."}
                   </span>
-                </div>
-                <div>
-                  <FontAwesomeIcon
-                    icon={faEllipsis}
+                  <button
+                    type="button"
+                    className={styles.editInfoBtn}
+                    aria-label="Edit user"
+                    title="Edit user"
                     onClick={() => navigate(`/edit-user/${userRow[0].user_id}`)}
-                  />
+                  >
+                    <FontAwesomeIcon icon={faCircleInfo} />
+                  </button>
+                </div>
+                <div className={styles.rowActions}>
+                  <button
+                    type="button"
+                    className={styles.expandUserBtn}
+                    onClick={() => toggleUserRow(userRow[0].user_id)}
+                  >
+                    <FontAwesomeIcon
+                      icon={
+                        expandedUsers[userRow[0].user_id]
+                          ? faChevronUp
+                          : faChevronDown
+                      }
+                        />
+                  </button>
                 </div>
               </h4>
             </div>
             {/* Day Cells */}
-            {userRow.map((cell, cellIndex) => {
+            {expandedUsers[userRow[0].user_id] &&
+              userRow.map((cell, cellIndex) => {
               const shift = getShiftByID(cell.shift_id);
 
               let display = "";
@@ -546,6 +639,8 @@ const Scheduler = () => {
               const tooltip =
                 cell.is_time_off && cell.time_off_request
                   ? cell.time_off_request.reason
+                  : cell.has_pending_time_off && cell.pending_time_off_request
+                    ? `[PENDING REQUEST] ${cell.pending_time_off_request.reason}`
                   : "";
               return (
                 <div
@@ -553,6 +648,9 @@ const Scheduler = () => {
                     styles.gridCell,
                     styles.dateCell,
                     cell.is_time_off && styles.timeOffCell,
+                    !cell.is_time_off &&
+                      cell.has_pending_time_off &&
+                      styles.pendingTimeOffCell,
                     cell.status === "staged" && styles.stagedCell,
                     cell.status === "committed" && styles.committedCell,
                   )}
@@ -596,7 +694,7 @@ const Scheduler = () => {
                   )}
                 </div>
               );
-            })}
+              })}
           </div>
         ))}
         <div className={styles.scheduleFooter}>
@@ -631,18 +729,35 @@ const Scheduler = () => {
           return (
             <div className={styles.mobileUserCard} key={rowIndex}>
               <div className={styles.mobileUserHeader}>
-                <p>
+                <p className={styles.mobileUserName}>
                   {employee?.first_name} {employee?.last_name}
+                  <button
+                    type="button"
+                    className={styles.mobileEditInfoBtn}
+                    aria-label="Edit user"
+                    title="Edit user"
+                    onClick={() => navigate(`/edit-user/${userRow[0].user_id}`)}
+                  >
+                    <FontAwesomeIcon icon={faCircleInfo} />
+                  </button>
                 </p>
-                <button
-                  type="button"
-                  className={styles.mobileUserEdit}
-                  onClick={() => navigate(`/edit-user/${userRow[0].user_id}`)}
-                >
-                  Edit
-                </button>
+                <div className={styles.mobileUserHeaderActions}>
+                  <button
+                    type="button"
+                    className={styles.mobileExpandBtn}
+                    onClick={() => toggleUserRow(userRow[0].user_id)}
+                  >
+                    <FontAwesomeIcon
+                      icon={
+                        expandedUsers[userRow[0].user_id]
+                          ? faChevronUp
+                          : faChevronDown
+                      }
+                        />
+                  </button>
+                </div>
               </div>
-
+              {expandedUsers[userRow[0].user_id] && (
               <div className={styles.mobileDayList}>
                 {userRow.map((cell, dayIndex) => {
                   const shift = getShiftByID(cell.shift_id);
@@ -651,6 +766,8 @@ const Scheduler = () => {
                   let display = "Unassigned";
                   if (cell.is_time_off) {
                     display = "R/O";
+                  } else if (cell.has_pending_time_off) {
+                    display = "Pending R/O";
                   } else if (shift) {
                     if (shift.id === 9998) {
                       display = `${toAMPM(cell.custom_start_time) || "--"}-${toAMPM(cell.custom_end_time) || "--"}`;
@@ -695,6 +812,7 @@ const Scheduler = () => {
                   );
                 })}
               </div>
+              )}
             </div>
           );
         })}

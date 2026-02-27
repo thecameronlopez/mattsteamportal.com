@@ -20,33 +20,93 @@ const EditUser = () => {
     role: "",
     department: "",
   });
+  const [initialData, setInitialData] = useState({
+    formData: null,
+    adminFields: null,
+  });
   const [editing, setEditing] = useState(false);
+
+  const hasLoadedData = Boolean(initialData.formData);
+  const formDirty = hasLoadedData
+    ? Object.keys(formData).some(
+        (key) => formData[key] !== initialData.formData[key],
+      )
+    : false;
+  const adminDirty =
+    user.role === "admin" && hasLoadedData
+      ? Object.keys(adminFields).some(
+          (key) => adminFields[key] !== initialData.adminFields[key],
+        )
+      : false;
+  const isDirty = formDirty || adminDirty;
+
+  useEffect(() => {
+    if (user && Number(id) === Number(user.id)) {
+      const fallbackForm = {
+        first_name: user.first_name || "",
+        last_name: user.last_name || "",
+        email: user.email || "",
+        phone_number: user.phone_number || "",
+        username: user.username || "",
+      };
+      const fallbackAdmin = {
+        role: user.role || "",
+        department: user.department || "",
+      };
+      setFormData(fallbackForm);
+      setAdminFields(fallbackAdmin);
+      setInitialData({
+        formData: fallbackForm,
+        adminFields: fallbackAdmin,
+      });
+    }
+  }, [id, user]);
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const response = await fetch(`/api/read/user/${id}?full=true`);
-      const data = await response.json();
-      if (data.success) {
-        setFormData({
-          first_name: data.user.first_name,
-          last_name: data.user.last_name,
-          email: data.user.email,
-          phone_number: data.user.phone_number || "",
-          username: data.user.username || "",
+      try {
+        const response = await fetch(`/api/read/user/${id}?full=true`, {
+          credentials: "include",
         });
-        setAdminFields({
-          role: data.user.role || "",
-          department: data.user.department || "",
-        });
-      } else {
-        // Handle error (e.g., user not found)
-        console.error(data.message);
-        toast.error(data.message);
+        const data = await response.json();
+        if (data.success) {
+          const fetchedForm = {
+            first_name: data.user.first_name,
+            last_name: data.user.last_name,
+            email: data.user.email,
+            phone_number: data.user.phone_number || "",
+            username: data.user.username || "",
+          };
+          const fetchedAdmin = {
+            role: data.user.role || "",
+            department: data.user.department || "",
+          };
+          setFormData(fetchedForm);
+          setAdminFields(fetchedAdmin);
+          setInitialData({
+            formData: fetchedForm,
+            adminFields: fetchedAdmin,
+          });
+        } else {
+          console.error(data.message);
+          toast.error(data.message || "Failed to load user profile.");
+        }
+      } catch (error) {
+        console.error("[EDIT USER FETCH ERROR]:", error);
+        toast.error("Failed to load user profile.");
       }
     };
 
     fetchUserData();
-  }, [id, editing]);
+  }, [id]);
+
+  const handleEditToggle = () => {
+    if (editing && initialData.formData && initialData.adminFields) {
+      setFormData(initialData.formData);
+      setAdminFields(initialData.adminFields);
+    }
+    setEditing((prev) => !prev);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -68,6 +128,10 @@ const EditUser = () => {
     const data = await response.json();
     if (data.success) {
       toast.success(data.message);
+      setInitialData({
+        formData: formData,
+        adminFields: adminFields,
+      });
       setEditing(false);
     } else {
       toast.error(data.message);
@@ -187,12 +251,17 @@ const EditUser = () => {
         )}
         <button
           type="button"
-          onClick={() => setEditing(!editing)}
+          onClick={handleEditToggle}
           className={styles.setEditingButton}
+          disabled={!hasLoadedData}
         >
           {editing ? "Cancel" : "Edit"}
         </button>
-        {editing && <button type="submit">Save</button>}
+        {editing && (
+          <button className={styles.saveButton} type="submit" disabled={!isDirty}>
+            Save
+          </button>
+        )}
       </form>
     </div>
   );
