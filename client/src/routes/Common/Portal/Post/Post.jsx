@@ -7,7 +7,7 @@ import {
   faComment,
   faRectangleXmark,
 } from "@fortawesome/free-solid-svg-icons";
-import { convertDateFromStr } from "../../../../utils/Helpers";
+import { convertDateFromStr, getAssetUrl } from "../../../../utils/Helpers";
 import { useAuth } from "../../../../Context/AuthContext";
 
 const Post = () => {
@@ -18,25 +18,39 @@ const Post = () => {
   const [comment, setComment] = useState("");
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const getPost = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`/api/read/post/${id}`);
+        const response = await fetch(`/api/read/post/${id}`, {
+          signal: controller.signal,
+        });
         const data = await response.json();
         if (!data.success) {
           toast.error(data.message);
           return;
         }
         setPost(data.post);
+      } catch (error) {
+        if (error.name === "AbortError") return;
+        toast.error(error.message);
       } finally {
         setLoading(false);
       }
     };
 
     getPost();
+    return () => controller.abort();
   }, [id, setLoading]);
 
   const addComment = async (post_id) => {
+    const trimmedComment = comment.trim();
+    if (!trimmedComment) {
+      toast.error("Comment cannot be empty.");
+      return;
+    }
+
     if (!confirm("Add Comment?")) return;
     try {
       const response = await fetch(`/api/create/comment/${post_id}`, {
@@ -45,7 +59,7 @@ const Post = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ comment }),
+        body: JSON.stringify({ comment: trimmedComment }),
       });
       const data = await response.json();
       if (!data.success) {
@@ -66,6 +80,10 @@ const Post = () => {
     }
   };
 
+  const getCommenterInitial = (username = "") => {
+    return username.trim().charAt(0).toUpperCase() || "?";
+  };
+
   if (!post) return <h1>Post not found</h1>;
 
   return (
@@ -73,7 +91,7 @@ const Post = () => {
       <div className={styles.postContent}>
         {post.file_path && (
           <img
-            src={`https://mattsteamportal.com${post.file_path}`}
+            src={getAssetUrl(post.file_path)}
             alt={post.file_path}
             className={styles.postImage}
           />
@@ -102,33 +120,43 @@ const Post = () => {
                 name="comment"
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
+                placeholder="Write a comment..."
               ></textarea>
-              <button type="button" onClick={() => addComment(post.id)}>
-                Comment
-              </button>
+              <div className={styles.commentActions}>
+                <small>Posts publicly to this thread.</small>
+                <button
+                  type="button"
+                  onClick={() => addComment(post.id)}
+                  disabled={!comment.trim()}
+                >
+                  Comment
+                </button>
+              </div>
             </div>
           )}
           {post.comments.length !== 0 ? (
             post.comments.map(({ content, created_at, commenter }, index) => (
-              <div key={index} className={styles.comment}>
-                <p>{content}</p>
-                <div>
-                  <small>{convertDateFromStr(created_at)}</small>
-                  <p>{commenter.username}</p>
+              <div
+                key={index}
+                className={`${styles.comment} ${
+                  index % 2 === 1 ? styles.commentAlt : ""
+                }`}
+              >
+                <div className={styles.commentMeta}>
+                  <div className={styles.commentAvatar}>
+                    {getCommenterInitial(commenter?.username)}
+                  </div>
+                  <div className={styles.commentIdentity}>
+                    <p>{commenter.username}</p>
+                    <small>{convertDateFromStr(created_at)}</small>
+                  </div>
                 </div>
+                <p>{content}</p>
               </div>
             ))
           ) : (
             <div className={styles.comment}>
-              <p
-                style={{
-                  textAlign: "center",
-                  color: "var(--linkText)",
-                  paddingTop: "10px",
-                }}
-              >
-                Be the first to comment!
-              </p>
+              <p className={styles.noComments}>Be the first to comment!</p>
             </div>
           )}
         </div>

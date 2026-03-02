@@ -1,3 +1,5 @@
+import { SERVER } from "./Variables";
+
 ///////////
 //SCHEMAS//
 ///////////
@@ -149,3 +151,12 @@ export const renderObjects = (obj) => {
 };
 
 export const locationAbbr = (loc) => (loc === "lake_charles" ? "LC" : "JN");
+
+export const getAssetUrl = (path) => {
+  if (!path) return "";
+  if (/^https?:\/\//i.test(path)) return path;
+
+  const base = SERVER.replace(/\/+$/, "");
+  const assetPath = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${assetPath}`;
+};

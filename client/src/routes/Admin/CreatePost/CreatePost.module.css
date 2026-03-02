@@ -1,8 +1,11 @@
 .newPostContainer {
   width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding-top: 0.6rem;
 }
 
 .returnTo {
@@ -11,11 +14,35 @@
 }
 
 .newPostForm {
-  width: 80%;
+  width: min(100%, 840px);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 1rem;
+  align-items: stretch;
+  gap: 0.95rem;
+  border: 1px solid var(--textPrimary);
+  border-radius: 14px;
+  padding: clamp(0.95rem, 2.2vw, 1.5rem);
+  background-color: var(--background);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
+}
+
+.formIntro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--textPrimary);
+  margin-bottom: 0.15rem;
+}
+
+.formIntro h1 {
+  font-size: clamp(1.35rem, 1.85vw, 1.9rem);
+  line-height: 1.2;
+}
+
+.formIntro p {
+  color: var(--linkText);
+  font-size: 0.95rem;
 }
 
 .newPostForm div {
@@ -23,25 +50,47 @@
   flex-direction: column;
   align-items: flex-start;
   width: 100%;
+  gap: 0.35rem;
 }
 
 .newPostForm div label {
-  font-size: 12px;
-  margin-left: 4px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-left: 0.2rem;
+  color: var(--textSecondary);
+  letter-spacing: 0.015em;
+}
+
+.fieldHint {
+  color: var(--linkText);
+  font-size: 0.8rem;
+  margin-left: 0.2rem;
 }
 
 .newPostForm div input,
-select,
-textarea {
+.newPostForm div select,
+.newPostForm div textarea {
   width: 100%;
-  font-size: 24px;
+  font-size: 1rem;
   border-radius: 8px;
-  padding: 4px;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--textPrimary);
+  background-color: var(--backgroundDark);
+  color: var(--textPrimary);
+  outline: none;
+}
+
+.newPostForm div input:focus,
+.newPostForm div select:focus,
+.newPostForm div textarea:focus {
+  border-color: var(--textSecondary);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
 }
 
 .newPostForm div textarea {
   resize: none;
-  height: 10rem;
+  min-height: 12rem;
+  line-height: 1.45;
 }
 
 .newPostForm .fileUpload input[type="file"] {
@@ -50,23 +99,40 @@ textarea {
 
 .newPostForm .fileUpload label {
   border: 1px solid var(--textPrimary);
-  padding: 10px 20px;
+  background-color: var(--backgroundDark);
+  padding: 0.62rem 1.1rem;
   border-radius: 8px;
-  font-size: 1rem;
-  box-shadow: -1px 1px 4px #777;
-  align-self: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  align-self: flex-start;
+  cursor: pointer;
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease;
+}
+
+.newPostForm .fileUpload label:hover {
+  transform: translateY(-1px);
+  border-color: var(--textSecondary);
 }
 
 .newPostForm .imageDisplay {
   width: 100%;
   align-items: center;
   position: relative;
+  margin-top: 0.25rem;
+  border: 1px solid var(--textPrimary);
+  border-radius: 12px;
+  padding: 0.8rem;
+  background-color: var(--backgroundDark);
 }
 
 img.imgPreview {
   max-width: 100%;
-  max-height: 300px;
-  border-radius: 8px;
+  max-height: 360px;
+  border-radius: 10px;
+  border: 1px solid var(--textPrimary);
   object-fit: contain;
 }
 
@@ -75,11 +141,38 @@ button.removeImage {
   box-shadow: unset;
   color: darkred;
   position: absolute;
-  top: 0;
-  right: 0;
-  font-size: 24px;
+  top: 0.35rem;
+  right: 0.35rem;
+  font-size: 1.4rem;
 }
 
 .newPostForm button[type="submit"] {
-  margin-top: 3rem;
+  margin-top: 0.8rem;
+  align-self: flex-end;
+  min-width: 190px;
+  font-size: 1.5rem;
+}
+
+@media (max-width: 760px) {
+  .newPostContainer {
+    padding-top: 0.25rem;
+  }
+
+  .newPostForm {
+    padding: 0.8rem;
+  }
+
+  .newPostForm div textarea {
+    min-height: 10rem;
+  }
+
+  .newPostForm .fileUpload label {
+    width: 100%;
+    text-align: center;
+  }
+
+  .newPostForm button[type="submit"] {
+    width: 100%;
+    padding-block: 1rem;
+  }
 }

@@ -14,7 +14,7 @@ import {
   faGraduationCap,
   faPenClip,
 } from "@fortawesome/free-solid-svg-icons";
-import { convertDateFromStr } from "../../../../utils/Helpers";
+import { convertDateFromStr, getAssetUrl } from "../../../../utils/Helpers";
 import { POST_CATEGORY } from "../../../../utils/Enums";
 
 const Posts = () => {
@@ -31,10 +31,13 @@ const Posts = () => {
   const { category, page, limit } = postMeta;
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const getPosts = async () => {
       try {
         const response = await fetch(
           `/api/read/posts/${category}/${page}/${limit}`,
+          { signal: controller.signal },
         );
         const data = await response.json();
         if (!data.success) {
@@ -47,19 +50,25 @@ const Posts = () => {
           total_posts: data.total_posts,
         }));
       } catch (error) {
+        if (error.name === "AbortError") return;
         console.error("[SCHEDULE QUERY ERROR]: ", error);
         toast.error(error.message);
       }
     };
     getPosts();
+    return () => controller.abort();
   }, [category, page, limit]);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const markPostsAsSeen = async () => {
       try {
-        const response = await fetch("/api/read/posts/all/1/1");
+        const response = await fetch("/api/read/posts/all/1/1", {
+          signal: controller.signal,
+        });
         const data = await response.json();
-        if (!data.success || !data.posts?.length) return;
+        if (!data.success || !data.posts?.length || !user?.id) return;
 
         const latestPost = data.posts[0];
         localStorage.setItem(
@@ -69,18 +78,20 @@ const Posts = () => {
             created_at: latestPost.created_at,
           }),
         );
-      } catch {
-        // best-effort local unread tracking
+      } catch (error) {
+        if (error.name === "AbortError") return;
       }
     };
 
     markPostsAsSeen();
-  }, [user.id]);
+    return () => controller.abort();
+  }, [user?.id]);
 
   const handleCategory = (cat) => {
     setPostMeta((prev) => ({
       ...prev,
       category: cat,
+      page: 1,
     }));
   };
 
@@ -175,7 +186,7 @@ const Posts = () => {
               </div>
               {file_path && (
                 <img
-                  src={`https://mattsteamportal.com${file_path}`}
+                  src={getAssetUrl(file_path)}
                   alt={file_path}
                   className={styles.postItemImage}
                 />

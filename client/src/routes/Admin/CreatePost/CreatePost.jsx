@@ -97,6 +97,10 @@ const CreatePost = () => {
   return (
     <div className={styles.newPostContainer}>
       <form className={styles.newPostForm} onSubmit={handleSubmit}>
+        <div className={styles.formIntro}>
+          <h1>Create Post</h1>
+          <p>Share updates, alerts, and training notes with clear visibility.</p>
+        </div>
         <div>
           <label htmlFor="title">Title</label>
           <input
@@ -135,6 +139,9 @@ const CreatePost = () => {
             value={formData.content}
             onChange={handleChange}
           ></textarea>
+          <small className={styles.fieldHint}>
+            Keep this concise and action-focused so it is easy to scan.
+          </small>
         </div>
         <div className={styles.fileUpload}>
           <label htmlFor="upload">Upload an Image</label>
@@ -146,6 +153,9 @@ const CreatePost = () => {
             ref={fileRef}
             onChange={handleFileChange}
           />
+          <small className={styles.fieldHint}>
+            Optional. Use JPG/PNG/WebP for fastest load times.
+          </small>
         </div>
         {imgPreview && (
           <div className={styles.imageDisplay}>
