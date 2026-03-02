@@ -25,6 +25,7 @@ const RootLayout = () => {
 
   const path = location.pathname;
   const hideLink = path.startsWith("/review") || path.startsWith("/thank-you");
+  const currentYear = new Date().getFullYear();
 
   if (loading) return <LoadingScreen title="Starting Team Portal..." />;
 
@@ -48,7 +49,7 @@ const RootLayout = () => {
       <footer>
         {user && <button onClick={logout}>Logout</button>}
 
-        <p>© 2025 Matt's Appliances</p>
+        <p>© {currentYear} Matt's Appliances</p>
       </footer>
     </>
   );
