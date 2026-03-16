@@ -26,6 +26,7 @@ import {
   faChevronDown,
   faChevronUp,
   faCircleInfo,
+  faFloppyDisk,
   faForwardStep,
   faGears,
   faNotdef,
@@ -276,13 +277,11 @@ const Scheduler = () => {
     }));
   };
 
-  const submitSchedule = async () => {
-    if (!confirm("Submit Schedule?")) return;
-
+  const getValidAssignments = (assignmentEntries) => {
     const conflicts = [];
     const assignments = [];
 
-    for (const [key, assignment] of Object.entries(pendingAssignments)) {
+    for (const [key, assignment] of assignmentEntries) {
       const [userIdRaw, dateStr] = key.split("|");
       const userId = Number(userIdRaw);
       const user = departments.all.find((u) => u.id === userId);
@@ -310,10 +309,15 @@ const Scheduler = () => {
       );
     }
 
+    return assignments;
+  };
+
+  const submitAssignments = async (assignments, submittedKeys = null) => {
     if (assignments.length === 0) {
       toast.error("No changes to submit");
-      return;
+      return false;
     }
+
     setLoading(true);
     try {
       const response = await fetch("/api/create/bulk_schedule", {
@@ -335,14 +339,47 @@ const Scheduler = () => {
       if (refreshSchedule.success) {
         setSchedules(refreshSchedule.schedules);
       }
-      setPendingAssignments({});
-      localStorage.removeItem("pendingAssignments");
+      setPendingAssignments((prev) => {
+        if (!submittedKeys) {
+          localStorage.removeItem("pendingAssignments");
+          return {};
+        }
+
+        const next = { ...prev };
+        submittedKeys.forEach((key) => {
+          delete next[key];
+        });
+        localStorage.setItem("pendingAssignments", JSON.stringify(next));
+        return next;
+      });
       setLoading(false);
+      return true;
     } catch (error) {
       toast.error(error.message);
       console.error("Error submitting schedule:", error);
       setLoading(false);
+      return false;
     }
+  };
+
+  const submitSchedule = async () => {
+    if (!confirm("Submit Schedule?")) return;
+
+    const assignments = getValidAssignments(Object.entries(pendingAssignments));
+    await submitAssignments(assignments);
+  };
+
+  const handleSubmitSingleShift = async (cell) => {
+    const key = `${cell.user_id}|${formatDate(cell.date)}`;
+    const assignment = pendingAssignments[key];
+
+    if (!assignment) {
+      toast.error("No staged shift to submit");
+      return;
+    }
+
+    const assignments = getValidAssignments([[key, assignment]]);
+    await submitAssignments(assignments, [key]);
   };
 
   const handleDeleteSchedule = async (cell) => {
@@ -827,7 +864,7 @@ const Scheduler = () => {
                         }))
                       }
                     >
-                      <option value="">Week template</option>
+                      <option value="">-no template-</option>
                       {userTemplates.map((template) => (
                         <option key={template.name} value={template.name}>
                           {template.name}
@@ -940,9 +977,29 @@ const Scheduler = () => {
                           {locationAbbr(cell.location)}
                         </span>
                       </span>
+                      {cell.status === "staged" && (
+                        <button
+                          type="button"
+                          className={clsx(
+                            styles.cellActionButton,
+                            styles.cellSubmitButton,
+                          )}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleSubmitSingleShift(cell);
+                          }}
+                          aria-label="Submit staged shift"
+                          title="Submit staged shift"
+                        >
+                          <FontAwesomeIcon icon={faFloppyDisk} />
+                        </button>
+                      )}
                       <button
                         type="button"
-                        className={styles.cellDeleteButton}
+                        className={clsx(
+                          styles.cellActionButton,
+                          styles.cellDeleteButton,
+                        )}
                         onClick={(event) => {
                           event.stopPropagation();
                           handleDeleteSchedule(cell);
