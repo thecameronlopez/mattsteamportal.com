@@ -98,9 +98,10 @@ const Posts = () => {
   const handlePage = (step) => {
     setPostMeta((prev) => {
       let newPage = prev.page + step;
+      const maxPage = Math.max(prev.total_pages, 1);
 
       if (newPage < 1) newPage = 1;
-      if (newPage > prev.total_pages) newPage = prev.total_pages;
+      if (newPage > maxPage) newPage = maxPage;
 
       return {
         ...prev,
@@ -161,7 +162,7 @@ const Posts = () => {
           </span>
           <button
             onClick={() => handlePage(1)}
-            disabled={postMeta.page === postMeta.total_pages}
+            disabled={postMeta.page >= Math.max(postMeta.total_pages, 1)}
           >
             <FontAwesomeIcon icon={faForwardStep} />
           </button>

@@ -87,7 +87,9 @@ def get_posts(category, page, limit):
         query = query.filter_by(category=category)
         
     total_posts = query.count()
-    total_pages = (total_posts + limit - 1) // limit
+    total_pages = max((total_posts + limit - 1) // limit, 1)
+    page = min(page, total_pages)
+    offset = (page - 1) * limit
     posts = query.order_by(Post.created_at.desc()).offset(offset).limit(limit).all()
     return jsonify(
         success=True, 
