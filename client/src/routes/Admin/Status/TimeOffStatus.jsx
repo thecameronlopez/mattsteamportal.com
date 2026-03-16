@@ -1,9 +1,19 @@
 import toast from "react-hot-toast";
 import styles from "./TimeOffStatus.module.css";
 import React, { useEffect, useState } from "react";
-import { convertDateFromStr } from "../../../utils/Helpers";
+import {
+  convertDateFromStr,
+  MONTH_NAMES,
+} from "../../../utils/Helpers";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faBackwardStep,
+  faForwardStep,
+} from "@fortawesome/free-solid-svg-icons";
 
 const TimeOffStatus = () => {
+  const today = new Date();
+  const initialMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
   const [ro, setRo] = useState({
     pending: [],
     approved: [],
@@ -17,13 +27,30 @@ const TimeOffStatus = () => {
     approved: { page: 1, total_pages: 1, total_items: 0 },
     denied: { page: 1, total_pages: 1, total_items: 0 },
   });
+  const [selectedMonths, setSelectedMonths] = useState({
+    approved: initialMonth,
+    denied: initialMonth,
+  });
   const [statusChanges, setStatusChanges] = useState(0);
+
+  const shiftMonth = (monthValue, direction) => {
+    const [year, month] = monthValue.split("-").map(Number);
+    const shiftedDate = new Date(year, month - 1 + direction, 1);
+    return `${shiftedDate.getFullYear()}-${String(shiftedDate.getMonth() + 1).padStart(2, "0")}`;
+  };
+
+  const formatMonthLabel = (monthValue) => {
+    const [year, month] = monthValue.split("-").map(Number);
+    return `${MONTH_NAMES[month - 1]} ${year}`;
+  };
 
   useEffect(() => {
     const getRequestOffs = async () => {
       const params = new URLSearchParams({
         approved_page: String(pages.approved),
         denied_page: String(pages.denied),
+        approved_month: selectedMonths.approved,
+        denied_month: selectedMonths.denied,
         limit: "25",
       });
       const response = await fetch(`/api/read/time_off_requests?${params}`);
@@ -51,7 +78,7 @@ const TimeOffStatus = () => {
     };
 
     getRequestOffs();
-  }, [statusChanges, pages.approved, pages.denied]);
+  }, [statusChanges, pages.approved, pages.denied, selectedMonths]);
 
   const deleteTimeOffRequest = async (id) => {
     if (!confirm("Delete time off request?")) return;
@@ -162,10 +189,41 @@ const TimeOffStatus = () => {
       </div>
       {/* ---------------- APPROVED ---------------- */}
       <div>
-        <p>
-          Approved Requests ({pagination.approved.total_items ?? ro.approved.length}
-          )
-        </p>
+        <div className={styles.sectionHeader}>
+          <p>
+            Approved Requests ({pagination.approved.total_items ?? ro.approved.length}
+            )
+          </p>
+          <div className={styles.monthMover}>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedMonths((prev) => ({
+                  ...prev,
+                  approved: shiftMonth(prev.approved, -1),
+                }));
+                setPages((prev) => ({ ...prev, approved: 1 }));
+              }}
+              aria-label="Previous approved month"
+            >
+              <FontAwesomeIcon icon={faBackwardStep} />
+            </button>
+            <span>{formatMonthLabel(selectedMonths.approved)}</span>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedMonths((prev) => ({
+                  ...prev,
+                  approved: shiftMonth(prev.approved, 1),
+                }));
+                setPages((prev) => ({ ...prev, approved: 1 }));
+              }}
+              aria-label="Next approved month"
+            >
+              <FontAwesomeIcon icon={faForwardStep} />
+            </button>
+          </div>
+        </div>
         <ul className={styles.approvedList}>
           {ro.approved.length !== 0 ? (
             ro.approved.map(
@@ -249,7 +307,38 @@ const TimeOffStatus = () => {
       </div>
       {/* ---------------- DENIED ---------------- */}
       <div>
-        <p>Denied Requests ({pagination.denied.total_items ?? ro.denied.length})</p>
+        <div className={styles.sectionHeader}>
+          <p>Denied Requests ({pagination.denied.total_items ?? ro.denied.length})</p>
+          <div className={styles.monthMover}>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedMonths((prev) => ({
+                  ...prev,
+                  denied: shiftMonth(prev.denied, -1),
+                }));
+                setPages((prev) => ({ ...prev, denied: 1 }));
+              }}
+              aria-label="Previous denied month"
+            >
+              <FontAwesomeIcon icon={faBackwardStep} />
+            </button>
+            <span>{formatMonthLabel(selectedMonths.denied)}</span>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedMonths((prev) => ({
+                  ...prev,
+                  denied: shiftMonth(prev.denied, 1),
+                }));
+                setPages((prev) => ({ ...prev, denied: 1 }));
+              }}
+              aria-label="Next denied month"
+            >
+              <FontAwesomeIcon icon={faForwardStep} />
+            </button>
+          </div>
+        </div>
         <ul className={styles.deniedList}>
           {ro.denied.length !== 0 ? (
             ro.denied.map(

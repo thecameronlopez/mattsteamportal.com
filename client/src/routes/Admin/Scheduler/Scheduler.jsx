@@ -35,6 +35,8 @@ import { clsx } from "clsx";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../Context/AuthContext";
 
+const WEEK_TEMPLATE_STORAGE_KEY = "schedulerWeekTemplates";
+
 const Scheduler = () => {
   const { setLoading } = useAuth();
   const today = new Date();
@@ -57,6 +59,11 @@ const Scheduler = () => {
     const stored = localStorage.getItem("pendingAssignments");
     return stored ? JSON.parse(stored) : {};
   });
+  const [weekTemplates, setWeekTemplates] = useState(() => {
+    const stored = localStorage.getItem(WEEK_TEMPLATE_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : {};
+  });
+  const [selectedTemplates, setSelectedTemplates] = useState({});
   const [isLC, setIsLC] = useState(true);
   const [expandedUsers, setExpandedUsers] = useState({});
   const currentLocation = isLC ? "lake_charles" : "jennings";
@@ -70,6 +77,13 @@ const Scheduler = () => {
       JSON.stringify(pendingAssignments),
     );
   }, [pendingAssignments]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      WEEK_TEMPLATE_STORAGE_KEY,
+      JSON.stringify(weekTemplates),
+    );
+  }, [weekTemplates]);
 
   useEffect(() => {
     const storedAssignments = localStorage.getItem("pendingAssignments");
@@ -406,6 +420,198 @@ const Scheduler = () => {
 
   const getShiftByID = (id) => shifts.find((s) => s.id === id);
 
+  const getShiftDurationHours = (startTime, endTime) => {
+    if (!startTime || !endTime) return 0;
+
+    const [startHour, startMinute] = startTime.split(":").map(Number);
+    const [endHour, endMinute] = endTime.split(":").map(Number);
+
+    if (
+      [startHour, startMinute, endHour, endMinute].some((value) =>
+        Number.isNaN(value),
+      )
+    ) {
+      return 0;
+    }
+
+    const startTotalMinutes = startHour * 60 + startMinute;
+    let endTotalMinutes = endHour * 60 + endMinute;
+
+    if (endTotalMinutes < startTotalMinutes) {
+      endTotalMinutes += 24 * 60;
+    }
+
+    return (endTotalMinutes - startTotalMinutes) / 60;
+  };
+
+  const getCellScheduledHours = (cell) => {
+    if (!cell.shift_id || cell.is_time_off) return 0;
+
+    const shift = getShiftByID(cell.shift_id);
+    if (!shift) return 0;
+
+    const workedHours = getShiftDurationHours(
+      cell.custom_start_time ?? shift.start_time,
+      cell.custom_end_time ?? shift.end_time,
+    );
+
+    // Standard paid schedule math subtracts the employee's one-hour lunch.
+    return Math.max(0, workedHours - 1);
+  };
+
+  const formatScheduledHours = (hours) =>
+    Number.isInteger(hours) ? hours.toString() : hours.toFixed(1);
+
+  const getUserTemplateOptions = (userId) => weekTemplates[userId] ?? [];
+
+  const saveWeekTemplate = (userId) => {
+    const templateName = prompt("Template name for this employee's week?");
+    const trimmedName = templateName?.trim();
+
+    if (!trimmedName) {
+      toast.error("Template name is required");
+      return;
+    }
+
+    const weekPattern = currentWeek.map((day) => {
+      const dateStr = formatDate(day);
+      const key = `${userId}|${dateStr}`;
+      const pending = pendingAssignments[key];
+      const scheduledShift = schedules.find(
+        (s) => s.user_id === userId && s.shift_date === dateStr,
+      );
+
+      return {
+        weekdayIndex: day.getDay(),
+        shift_id: pending?.shift_id ?? scheduledShift?.shift_id ?? null,
+        location:
+          pending?.location ?? scheduledShift?.location ?? currentLocation,
+        custom_start_time:
+          pending?.custom_start_time ?? scheduledShift?.shift.start_time ?? null,
+        custom_end_time:
+          pending?.custom_end_time ?? scheduledShift?.shift.end_time ?? null,
+      };
+    });
+
+    const hasAnyShift = weekPattern.some((day) => day.shift_id);
+    if (!hasAnyShift) {
+      toast.error("This week has no shifts to save");
+      return;
+    }
+
+    setWeekTemplates((prev) => {
+      const existing = prev[userId] ?? [];
+      const nextTemplates = [
+        ...existing.filter((template) => template.name !== trimmedName),
+        {
+          name: trimmedName,
+          days: weekPattern,
+        },
+      ];
+
+      return {
+        ...prev,
+        [userId]: nextTemplates,
+      };
+    });
+
+    setSelectedTemplates((prev) => ({
+      ...prev,
+      [userId]: trimmedName,
+    }));
+
+    toast.success(`Saved "${trimmedName}" template`);
+  };
+
+  const applyWeekTemplate = (userId) => {
+    const selectedTemplateName = selectedTemplates[userId];
+    if (!selectedTemplateName) {
+      toast.error("Select a template first");
+      return;
+    }
+
+    const template = getUserTemplateOptions(userId).find(
+      (option) => option.name === selectedTemplateName,
+    );
+
+    if (!template) {
+      toast.error("Template not found");
+      return;
+    }
+
+    const user = departments.all.find((employee) => employee.id === userId);
+
+    setPendingAssignments((prev) => {
+      const next = { ...prev };
+
+      currentWeek.forEach((day) => {
+        const dateStr = formatDate(day);
+        const key = `${userId}|${dateStr}`;
+        delete next[key];
+
+        const templateDay = template.days.find(
+          (entry) => entry.weekdayIndex === day.getDay(),
+        );
+
+        if (!templateDay?.shift_id) return;
+
+        const approvedTimeOff = user?.time_off_requests?.some(
+          (req) =>
+            hasOverlappingRequest(req, dateStr) && req.status === "approved",
+        );
+
+        if (approvedTimeOff) return;
+
+        next[key] = {
+          user_id: userId,
+          shift_id: templateDay.shift_id,
+          shift_date: dateStr,
+          location: templateDay.location ?? currentLocation,
+          ...(templateDay.custom_start_time
+            ? { custom_start_time: templateDay.custom_start_time }
+            : {}),
+          ...(templateDay.custom_end_time
+            ? { custom_end_time: templateDay.custom_end_time }
+            : {}),
+        };
+      });
+
+      return next;
+    });
+
+    toast.success(`Applied "${selectedTemplateName}" template`);
+  };
+
+  const deleteWeekTemplate = (userId) => {
+    const selectedTemplateName = selectedTemplates[userId];
+    if (!selectedTemplateName) {
+      toast.error("Select a template first");
+      return;
+    }
+
+    setWeekTemplates((prev) => {
+      const existing = prev[userId] ?? [];
+      const remaining = existing.filter(
+        (template) => template.name !== selectedTemplateName,
+      );
+
+      const next = { ...prev };
+      if (remaining.length > 0) {
+        next[userId] = remaining;
+      } else {
+        delete next[userId];
+      }
+      return next;
+    });
+
+    setSelectedTemplates((prev) => ({
+      ...prev,
+      [userId]: "",
+    }));
+
+    toast.success(`Deleted "${selectedTemplateName}" template`);
+  };
+
   const toggleUserRow = (userId) => {
     setExpandedUsers((prev) => ({
       ...prev,
@@ -539,7 +745,8 @@ const Scheduler = () => {
       </div>
       {/* END CONTROL BAR */}
       {/* START SCHEDULE */}
-      <div className={styles.scheduleBlock}>
+      <div className={styles.scheduleViewport}>
+        <div className={styles.scheduleBlock}>
         <div className={styles.scheduleHeader}>
           <div
             className={clsx(styles.gridCell, [
@@ -567,12 +774,23 @@ const Scheduler = () => {
         </div>
         {scheduleRows.map((userRow, rowIndex) => (
           <div className={styles.userRow} key={rowIndex}>
+            {(() => {
+              const employee = departments[selectedDpt].find(
+                (u) => u.id === userRow[0].user_id,
+              );
+              const scheduledHours = userRow.reduce(
+                (total, cell) => total + getCellScheduledHours(cell),
+                0,
+              );
+              const userTemplates = getUserTemplateOptions(userRow[0].user_id);
+
+              return (
+                <>
             {/* Employee Name */}
             <div
               className={clsx(
                 styles.gridCell,
                 styles.employeeCell,
-                !expandedUsers[userRow[0].user_id] && styles.employeeCellCollapsed,
               )}
             >
               <h4>
@@ -581,11 +799,11 @@ const Scheduler = () => {
                     <FontAwesomeIcon icon={faUser} />
                   </span>
                   <span>
-                    {departments[selectedDpt].find((u) => u.id === userRow[0].user_id)
-                      ?.first_name}{" "}
-                    {departments[selectedDpt].find((u) => u.id === userRow[0].user_id)
-                      ?.last_name[0]}
+                    {employee?.first_name} {employee?.last_name?.[0]}
                     {"."}
+                  </span>
+                  <span className={styles.employeeHoursBadge}>
+                    {formatScheduledHours(scheduledHours)} hrs
                   </span>
                   <button
                     type="button"
@@ -598,6 +816,48 @@ const Scheduler = () => {
                   </button>
                 </div>
                 <div className={styles.rowActions}>
+                  <div className={styles.templateActions}>
+                    <select
+                      className={styles.templateSelect}
+                      value={selectedTemplates[userRow[0].user_id] ?? ""}
+                      onChange={(event) =>
+                        setSelectedTemplates((prev) => ({
+                          ...prev,
+                          [userRow[0].user_id]: event.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">Week template</option>
+                      {userTemplates.map((template) => (
+                        <option key={template.name} value={template.name}>
+                          {template.name}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className={styles.templateButton}
+                      onClick={() => saveWeekTemplate(userRow[0].user_id)}
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.templateButton}
+                      onClick={() => applyWeekTemplate(userRow[0].user_id)}
+                      disabled={userTemplates.length === 0}
+                    >
+                      Apply
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.templateButton}
+                      onClick={() => deleteWeekTemplate(userRow[0].user_id)}
+                      disabled={!selectedTemplates[userRow[0].user_id]}
+                    >
+                      Delete
+                    </button>
+                  </div>
                   <button
                     type="button"
                     className={styles.expandUserBtn}
@@ -615,8 +875,7 @@ const Scheduler = () => {
               </h4>
             </div>
             {/* Day Cells */}
-            {expandedUsers[userRow[0].user_id] &&
-              userRow.map((cell, cellIndex) => {
+            {userRow.map((cell, cellIndex) => {
               const shift = getShiftByID(cell.shift_id);
 
               let display = "";
@@ -675,19 +934,32 @@ const Scheduler = () => {
                     <FontAwesomeIcon icon={faNotdef} />
                   ) : cell.shift_id ? (
                     <span className={styles.shiftAssignedCell}>
-                      <span
-                        onClick={() => {
-                          if (cell.shift_id && !selectedShift) {
-                            handleDeleteSchedule(cell);
-                          }
-                        }}
-                        style={{ cursor: "pointer" }}
-                      >
+                      <span className={styles.shiftAssignedLabel}>
                         {display}{" "}
                         <span className={styles.cellLocationBadge}>
                           {locationAbbr(cell.location)}
                         </span>
                       </span>
+                      <button
+                        type="button"
+                        className={styles.cellDeleteButton}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleDeleteSchedule(cell);
+                        }}
+                        aria-label={
+                          cell.schedule_id
+                            ? "Delete scheduled shift"
+                            : "Remove staged shift"
+                        }
+                        title={
+                          cell.schedule_id
+                            ? "Delete scheduled shift"
+                            : "Remove staged shift"
+                        }
+                      >
+                        <FontAwesomeIcon icon={faTrash} />
+                      </button>
                     </span>
                   ) : (
                     <FontAwesomeIcon icon={faSquarePlus} />
@@ -695,27 +967,34 @@ const Scheduler = () => {
                 </div>
               );
               })}
+                </>
+              );
+            })()}
           </div>
         ))}
         <div className={styles.scheduleFooter}>
-          <button
-            className={styles.printButton}
-            // onClick={() => alert("YO MAMA!!")}
-            onClick={() => {
-              const start = formatDate(currentWeek[0]);
-              const end = formatDate(currentWeek[currentWeek.length - 1]);
-              printSchedule(start, end, selectedDpt);
-            }}
-          >
-            Print
-          </button>
-          {currentWeek.map((day, index) => (
+          <div className={clsx(styles.footerCell, styles.footerActionCell)}>
+            <button
+              className={styles.printButton}
+              onClick={() => {
+                const start = formatDate(currentWeek[0]);
+                const end = formatDate(currentWeek[currentWeek.length - 1]);
+                printSchedule(start, end, selectedDpt);
+              }}
+            >
+              Print
+            </button>
+          </div>
+          {currentWeek.slice(0, -1).map((day, index) => (
             <div key={index} className={styles.footerCell}></div>
           ))}
-          <button onClick={submitSchedule} className={styles.submitShiftButton}>
-            Submit Shift
-          </button>
+          <div className={clsx(styles.footerCell, styles.footerSubmitCell)}>
+            <button onClick={submitSchedule} className={styles.submitShiftButton}>
+              Submit Shift
+            </button>
+          </div>
         </div>
+      </div>
       </div>
       <div className={styles.mobileQuickSchedule}>
         <p className={styles.mobileHint}>
@@ -726,11 +1005,18 @@ const Scheduler = () => {
           const employee = departments[selectedDpt].find(
             (u) => u.id === userRow[0].user_id,
           );
+          const scheduledHours = userRow.reduce(
+            (total, cell) => total + getCellScheduledHours(cell),
+            0,
+          );
           return (
             <div className={styles.mobileUserCard} key={rowIndex}>
               <div className={styles.mobileUserHeader}>
                 <p className={styles.mobileUserName}>
                   {employee?.first_name} {employee?.last_name}
+                  <span className={styles.employeeHoursBadge}>
+                    {formatScheduledHours(scheduledHours)} hrs
+                  </span>
                   <button
                     type="button"
                     className={styles.mobileEditInfoBtn}

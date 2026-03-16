@@ -267,9 +267,27 @@ def get_time_off_request(id):
 @login_required
 def get_time_off_requests():
     try:
+        def parse_month_range(month_value):
+            if not month_value:
+                return None
+
+            try:
+                month_start = datetime.strptime(month_value, "%Y-%m").date().replace(day=1)
+            except ValueError:
+                abort(400, description="Invalid month format. Expected YYYY-MM.")
+
+            if month_start.month == 12:
+                next_month = month_start.replace(year=month_start.year + 1, month=1, day=1)
+            else:
+                next_month = month_start.replace(month=month_start.month + 1, day=1)
+
+            return month_start, next_month
+
         approved_page = max(request.args.get("approved_page", 1, type=int), 1)
         denied_page = max(request.args.get("denied_page", 1, type=int), 1)
         page_size = max(request.args.get("limit", 25, type=int), 1)
+        approved_month = request.args.get("approved_month", type=str)
+        denied_month = request.args.get("denied_month", type=str)
 
         # Pending stays as a full query per product requirement.
         pending_requests = (
@@ -289,6 +307,22 @@ def get_time_off_requests():
             .filter(TimeOffRequest.status == TimeOffStatusEnum.DENIED)
             .order_by(TimeOffRequest.id.desc())
         )
+
+        approved_month_range = parse_month_range(approved_month)
+        if approved_month_range:
+            month_start, next_month = approved_month_range
+            approved_query = approved_query.filter(
+                TimeOffRequest.start_date < next_month,
+                TimeOffRequest.end_date >= month_start,
+            )
+
+        denied_month_range = parse_month_range(denied_month)
+        if denied_month_range:
+            month_start, next_month = denied_month_range
+            denied_query = denied_query.filter(
+                TimeOffRequest.start_date < next_month,
+                TimeOffRequest.end_date >= month_start,
+            )
 
         approved_total = approved_query.count()
         denied_total = denied_query.count()

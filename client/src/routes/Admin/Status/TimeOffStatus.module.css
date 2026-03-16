@@ -34,6 +34,54 @@
   margin-left: 0.125rem;
 }
 
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.sectionHeader > p {
+  font-weight: 800;
+  font-size: clamp(1.1rem, 2.4vw, 1.45rem);
+  color: var(--linkText);
+  margin-left: 0.125rem;
+}
+
+.monthMover {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.25rem;
+  border: 1px solid var(--linkText);
+  border-radius: 999px;
+  background: var(--background);
+}
+
+.monthMover span {
+  min-width: 132px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--textPrimary);
+}
+
+.monthMover button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--backgroundDark);
+  color: var(--textPrimary);
+  box-shadow: none;
+  padding: 0;
+}
+
+.monthMover button:hover {
+  background: var(--linkText);
+}
+
 .pendingList,
 .approvedList,
 .deniedList {
@@ -206,6 +254,15 @@
 @media screen and (max-width: 820px) {
   .timeOffStatusMasterBlock {
     padding: 0.25rem 0 1.25rem;
+  }
+
+  .sectionHeader {
+    align-items: stretch;
+  }
+
+  .monthMover {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .pendingList li,
