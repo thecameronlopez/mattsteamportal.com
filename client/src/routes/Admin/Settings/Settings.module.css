@@ -85,6 +85,36 @@
   position: relative;
 }
 
+.userCardLink {
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    transform 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.userCardLink:hover,
+.userCardLink:focus-visible {
+  border-color: var(--linkText);
+  background: rgba(109, 125, 178, 0.12);
+  transform: translateY(-1px);
+}
+
+.shiftCardLink {
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    transform 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.shiftCardLink:hover,
+.shiftCardLink:focus-visible {
+  border-color: var(--linkText);
+  background: rgba(109, 125, 178, 0.12);
+  transform: translateY(-1px);
+}
+
 .itemTitle {
   font-size: 1rem;
   font-weight: 800;

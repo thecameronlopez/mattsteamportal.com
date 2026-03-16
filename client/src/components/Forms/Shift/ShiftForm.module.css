@@ -13,6 +13,24 @@
   color: var(--textPrimary);
 }
 
+.cancelEditBtn {
+  align-self: flex-start;
+  min-height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--textSecondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  box-shadow: none;
+  padding: 0.3rem 0.55rem;
+}
+
+.cancelEditBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--textPrimary);
+}
+
 .autoTitleToggle {
   display: inline-flex;
   align-items: center;

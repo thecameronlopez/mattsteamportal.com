@@ -1,8 +1,8 @@
 import styles from "./ShiftForm.module.css";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
-const ShiftForm = ({ onCreateShift }) => {
+const ShiftForm = ({ onCreateShift, onUpdateShift, initialShift, onCancelEdit }) => {
   const [autoTitle, setAutoTitle] = useState(true);
   const [formData, setFormData] = useState({
     title: "",
@@ -21,6 +21,31 @@ const ShiftForm = ({ onCreateShift }) => {
     const mm = String(m).padStart(2, "0");
     return `${hh}:${mm} ${suffix}`;
   };
+
+  useEffect(() => {
+    if (!initialShift) {
+      setFormData({
+        title: "",
+        start_time: "",
+        end_time: "",
+      });
+      setAutoTitle(true);
+      return;
+    }
+
+    setFormData({
+      title: initialShift.title ?? "",
+      start_time: initialShift.start_time ?? "",
+      end_time: initialShift.end_time ?? "",
+    });
+
+    const generatedTitle =
+      initialShift.start_time && initialShift.end_time
+        ? `${toDisplayTime(initialShift.start_time)} - ${toDisplayTime(initialShift.end_time)}`
+        : "";
+
+    setAutoTitle(generatedTitle === (initialShift.title ?? ""));
+  }, [initialShift]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -54,17 +79,21 @@ const ShiftForm = ({ onCreateShift }) => {
       toast.error("Shift title is required");
       return;
     }
-    if (!confirm("Submit new shift?")) return;
+    const isEditing = Boolean(initialShift?.id);
+    if (!confirm(isEditing ? "Update this shift?" : "Submit new shift?")) return;
 
     try {
-      const response = await fetch("/api/create/shift", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        isEditing ? `/api/update/shift/${initialShift.id}` : "/api/create/shift",
+        {
+          method: isEditing ? "PUT" : "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
         },
-        body: JSON.stringify(payload),
-      });
+      );
 
       const data = await response.json();
       if (!data.success) {
@@ -72,24 +101,41 @@ const ShiftForm = ({ onCreateShift }) => {
       }
       toast.success(data.message);
 
-      if (onCreateShift) {
+      if (isEditing) {
+        if (onUpdateShift) {
+          onUpdateShift(data.shift);
+        }
+      } else if (onCreateShift) {
         onCreateShift(data.shift);
       }
+
       setFormData({
         title: "",
         start_time: "",
         end_time: "",
       });
       setAutoTitle(true);
+
+      if (isEditing && onCancelEdit) {
+        onCancelEdit();
+      }
     } catch (error) {
-      console.error("[SHIFT CREATION ERROR]: ", error);
+      console.error(
+        isEditing ? "[SHIFT UPDATE ERROR]: " : "[SHIFT CREATION ERROR]: ",
+        error,
+      );
       toast.error(error.message);
     }
   };
 
   return (
     <form className={styles.shiftForm} onSubmit={handleSubmit}>
-      <h2>Add New Shift</h2>
+      <h2>{initialShift ? "Edit Shift" : "Add New Shift"}</h2>
+      {initialShift && (
+        <button type="button" className={styles.cancelEditBtn} onClick={onCancelEdit}>
+          Cancel Edit
+        </button>
+      )}
       <label className={styles.autoTitleToggle}>
         <input
           type="checkbox"
@@ -130,7 +176,7 @@ const ShiftForm = ({ onCreateShift }) => {
           required
         />
       </div>
-      <button type="submit">Submit</button>
+      <button type="submit">{initialShift ? "Update Shift" : "Submit"}</button>
     </form>
   );
 };

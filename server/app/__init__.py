@@ -1,4 +1,5 @@
 from flask import Flask, send_from_directory
+import click
 from config import Config
 from app.extensions import db, migrate, login_manager, cors, mail, bcrypt
 from app.logger import setup_logger
@@ -37,5 +38,56 @@ def create_app(config_class=Config):
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+
+    @app.cli.command("seed-reserved-shifts")
+    def seed_reserved_shifts():
+        from app.models import Shift
+
+        reserved_shifts = [
+            {
+                "id": 9998,
+                "title": "Custom",
+                "start_time": None,
+                "end_time": None,
+            },
+            {
+                "id": 9999,
+                "title": "OFF",
+                "start_time": None,
+                "end_time": None,
+            },
+        ]
+
+        created = 0
+        updated = 0
+
+        for shift_data in reserved_shifts:
+            shift = Shift.query.get(shift_data["id"])
+            if shift:
+                if (
+                    shift.title != shift_data["title"]
+                    or shift.start_time != shift_data["start_time"]
+                    or shift.end_time != shift_data["end_time"]
+                ):
+                    shift.title = shift_data["title"]
+                    shift.start_time = shift_data["start_time"]
+                    shift.end_time = shift_data["end_time"]
+                    updated += 1
+                continue
+
+            db.session.add(
+                Shift(
+                    id=shift_data["id"],
+                    title=shift_data["title"],
+                    start_time=shift_data["start_time"],
+                    end_time=shift_data["end_time"],
+                )
+            )
+            created += 1
+
+        db.session.commit()
+        click.echo(
+            f"Reserved shifts seeded. Created: {created}, updated: {updated}."
+        )
 
     return app

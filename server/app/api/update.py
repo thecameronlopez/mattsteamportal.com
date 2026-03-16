@@ -1,9 +1,10 @@
 from flask import Blueprint, jsonify, request, current_app
-from app.models import User, Post, TimeOffStatusEnum, RoleEnum, TimeOffRequest, DepartmentEnum, Schedule
+from app.models import User, Post, TimeOffStatusEnum, RoleEnum, TimeOffRequest, DepartmentEnum, Schedule, Shift
 from app.extensions import db
 from flask_login import current_user, login_required
 from werkzeug.utils import secure_filename
 from pdf2image import convert_from_path
+from datetime import time
 import os
 import platform
 import re
@@ -120,6 +121,52 @@ def update_time_off_status(id, status):
         db.session.rollback()
         current_app.logger.error(f"[TIME OFF UPDATE ERROR]: {e}")
         return jsonify(success=False, message="There was an error when updating time off request"), 500
+
+
+@update_bp.route("/shift/<int:id>", methods=["PUT"])
+@login_required
+def update_shift(id):
+    if current_user.role != RoleEnum.ADMIN:
+        return jsonify(success=False, message="Unauthorized"), 403
+
+    data = request.get_json()
+    if not data:
+        return jsonify(success=False, message="No input data provided"), 400
+
+    shift = Shift.query.get(id)
+    if not shift:
+        return jsonify(success=False, message="Shift not found"), 404
+
+    title = (data.get("title") or "").strip()
+    start_str = data.get("start_time")
+    end_str = data.get("end_time")
+
+    if not title:
+        return jsonify(success=False, message="Shift title is required"), 400
+
+    if bool(start_str) != bool(end_str):
+        return jsonify(success=False, message="Start and end times must both be provided"), 400
+
+    try:
+        shift.title = title
+        shift.start_time = time.fromisoformat(start_str) if start_str else None
+        shift.end_time = time.fromisoformat(end_str) if end_str else None
+
+        db.session.commit()
+        current_app.logger.info(
+            f"{current_user.first_name} {current_user.last_name} updated shift #{shift.id}."
+        )
+        return jsonify(
+            success=True,
+            message="Shift updated successfully",
+            shift=shift.serialize(),
+        ), 200
+    except ValueError:
+        return jsonify(success=False, message="Invalid Time Format"), 400
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"[SHIFT UPDATE ERROR]: {e}")
+        return jsonify(success=False, message="There was an error when updating shift"), 500
 
 
 @update_bp.route("/user/<int:id>", methods=["PUT"])

@@ -16,10 +16,13 @@ import {
   faCircleXmark,
   faDeleteLeft,
 } from "@fortawesome/free-solid-svg-icons";
+import { useNavigate } from "react-router-dom";
 
 const Settings = () => {
+  const navigate = useNavigate();
   const [shifts, setShifts] = useState([]);
   const [users, setUsers] = useState([]);
+  const [selectedShift, setSelectedShift] = useState(null);
   const [adding, setAdding] = useState({
     shift: false,
     user: false,
@@ -49,7 +52,11 @@ const Settings = () => {
   }, []);
 
   const handleUpdateShift = (newShift) => {
-    setShifts((prev) => [...prev, newShift]);
+    setShifts((prev) => {
+      const exists = prev.some((shift) => shift.id === newShift.id);
+      if (!exists) return [...prev, newShift];
+      return prev.map((shift) => (shift.id === newShift.id ? newShift : shift));
+    });
   };
   const handleUpdateUser = (newUser) => {
     setUsers((prev) => [...prev, newUser]);
@@ -79,7 +86,10 @@ const Settings = () => {
           <button
             type="button"
             className={styles.toggleAddBtn}
-            onClick={() => setAdding((prev) => ({ ...prev, shift: !prev.shift }))}
+            onClick={() => {
+              setSelectedShift(null);
+              setAdding((prev) => ({ ...prev, shift: !prev.shift }));
+            }}
           >
             <FontAwesomeIcon
               icon={adding.shift ? faCircleXmark : faCirclePlus}
@@ -94,14 +104,38 @@ const Settings = () => {
         />
         {adding.shift && (
           <div className={styles.addShiftContainer}>
-            <ShiftForm onCreateShift={handleUpdateShift} />
+            <ShiftForm
+              onCreateShift={handleUpdateShift}
+              onUpdateShift={handleUpdateShift}
+              initialShift={selectedShift}
+              onCancelEdit={() => {
+                setSelectedShift(null);
+                setAdding((prev) => ({ ...prev, shift: false }));
+              }}
+            />
           </div>
         )}
         <div className={styles.shiftItems}>
           {shifts
             .filter((s) => s.id !== 9999 && s.id !== 9998)
             .map((shift, index) => (
-              <div key={index} className={styles.itemCard}>
+              <div
+                key={index}
+                className={`${styles.itemCard} ${styles.shiftCardLink}`}
+                onClick={() => {
+                  setSelectedShift(shift);
+                  setAdding((prev) => ({ ...prev, shift: true }));
+                }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setSelectedShift(shift);
+                    setAdding((prev) => ({ ...prev, shift: true }));
+                  }
+                }}
+              >
                 <p className={styles.itemTitle}>{shift.title}</p>
                 <p className={styles.itemMeta}>
                   Start Time: <span>{toAMPM(shift.start_time)}</span>
@@ -112,7 +146,10 @@ const Settings = () => {
                 <FontAwesomeIcon
                   icon={faDeleteLeft}
                   className={styles.deleteButton}
-                  onClick={() => handleDelete(shift.id, "shift")}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleDelete(shift.id, "shift");
+                  }}
                 />
               </div>
             ))}
@@ -147,13 +184,28 @@ const Settings = () => {
         )}
         <div className={styles.userItems}>
           {users.map((user, index) => (
-            <div key={index} className={styles.itemCard}>
+            <div
+              key={index}
+              className={`${styles.itemCard} ${styles.userCardLink}`}
+              onClick={() => navigate(`/edit-user/${user.id}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  navigate(`/edit-user/${user.id}`);
+                }
+              }}
+            >
               <p className={styles.itemTitle}>{user.first_name}</p>
               <p className={styles.itemMeta}>{user.email}</p>
               <FontAwesomeIcon
                 icon={faDeleteLeft}
                 className={styles.deleteButton}
-                onClick={() => handleDelete(user.id, "user")}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  handleDelete(user.id, "user");
+                }}
               />
             </div>
           ))}
