@@ -8,12 +8,12 @@ import {
   faRectangleXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { convertDateFromStr, getAssetUrl } from "../../../../utils/Helpers";
-import { useAuth } from "../../../../Context/AuthContext";
+import LoadingScreen from "../../../../components/Common/LoadingScreen";
 
 const Post = () => {
   const { id } = useParams();
-  const { setLoading } = useAuth();
   const [post, setPost] = useState(null);
+  const [loadingPost, setLoadingPost] = useState(true);
   const [commenting, setCommenting] = useState(false);
   const [comment, setComment] = useState("");
 
@@ -21,7 +21,7 @@ const Post = () => {
     const controller = new AbortController();
 
     const getPost = async () => {
-      setLoading(true);
+      setLoadingPost(true);
       try {
         const response = await fetch(`/api/read/post/${id}`, {
           signal: controller.signal,
@@ -36,13 +36,13 @@ const Post = () => {
         if (error.name === "AbortError") return;
         toast.error(error.message);
       } finally {
-        setLoading(false);
+        setLoadingPost(false);
       }
     };
 
     getPost();
     return () => controller.abort();
-  }, [id, setLoading]);
+  }, [id]);
 
   const addComment = async (post_id) => {
     const trimmedComment = comment.trim();
@@ -84,6 +84,7 @@ const Post = () => {
     return username.trim().charAt(0).toUpperCase() || "?";
   };
 
+  if (loadingPost) return <LoadingScreen title="Loading post..." />;
   if (!post) return <h1>Post not found</h1>;
 
   return (
