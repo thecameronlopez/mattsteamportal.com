@@ -60,6 +60,43 @@
   background: #f2f2f2;
 }
 
+.passwordField {
+  position: relative;
+}
+
+.passwordField input {
+  padding-right: 4.75rem;
+}
+
+.passwordToggle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0.65rem;
+  display: flex;
+  align-items: center;
+  width: auto;
+  padding: 0.2rem 0.35rem;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  appearance: none;
+  color: #555;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: color 0.16s ease;
+  cursor: pointer;
+}
+
+.passwordToggle:hover {
+  color: #171717;
+}
+
+.passwordToggle:focus-visible {
+  color: #171717;
+  outline: none;
+}
+
 .loginForm button[type="submit"] {
   width: 100%;
   font-size: clamp(1.1rem, 0.92rem + 0.52vw, 1.35rem);
