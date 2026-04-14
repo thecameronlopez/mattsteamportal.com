@@ -12,6 +12,10 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     FLASK_ENV = os.environ.get("FLASK_ENV", "development")
     DEBUG = FLASK_ENV == "development"
+    BUSINESS_TIMEZONE = os.environ.get("BUSINESS_TIMEZONE", "America/Chicago")
+    RECEIPTS_EMAIL = os.environ.get("RECEIPTS_EMAIL", "receipts@mattsappliancesla.net")
+    RECEIPT_AUTOMATION_WEBHOOK_URL = os.environ.get("RECEIPT_AUTOMATION_WEBHOOK_URL")
+    RECEIPT_AUTOMATION_TOKEN = os.environ.get("RECEIPT_AUTOMATION_TOKEN")
 
     # Sessions
     SESSION_TYPE = "redis"
@@ -45,5 +49,8 @@ class Config:
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024
     
     FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
+    
+    
+
     
 

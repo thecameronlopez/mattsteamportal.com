@@ -19,6 +19,7 @@ import {
   faForwardStep,
   faGears,
   faPeopleGroup,
+  faReceipt,
   faSignsPost,
   faUserClock,
 } from "@fortawesome/free-solid-svg-icons";
@@ -87,6 +88,7 @@ const Home = () => {
 
   const navItems = [
     { label: "Posts", path: "/posts", icon: faSignsPost },
+    { label: "Submit Receipt", path: "/receipts/submit", icon: faReceipt },
     { label: "Team", path: "/team-schedules", icon: faPeopleGroup },
     {
       label: "Time Off",
@@ -96,6 +98,7 @@ const Home = () => {
     },
     ...(user.role === "admin"
       ? [
+          { label: "Receipt Desk", path: "/receipts/manage", icon: faReceipt },
           { label: "Settings", path: "/settings", icon: faGears },
           {
             label: "Scheduler",
@@ -155,6 +158,14 @@ const Home = () => {
     });
   };
 
+  const isToday = (day) => {
+    return (
+      day.getFullYear() === today.getFullYear() &&
+      day.getMonth() === today.getMonth() &&
+      day.getDate() === today.getDate()
+    );
+  };
+
   return (
     <div className={styles.userHomeContainer}>
       <div className={styles.userHomeHeader}>
@@ -210,22 +221,24 @@ const Home = () => {
                 </button>
               ))}
             </div>
-            <div className={styles.switcher}>
-              <button onClick={goPrev}>
-                <FontAwesomeIcon icon={faBackwardStep} />
-              </button>
-              <button onClick={goToday}>
-                <FontAwesomeIcon icon={faCalendarWeek} />
-              </button>
-              <button onClick={goNext}>
-                <FontAwesomeIcon icon={faForwardStep} />
-              </button>
-            </div>
           </>
         )}
       </div>
       <div className={styles.currentWeekSchedule}>
-        <p className={styles.dateHeader}>{getWeekHeader()}</p>
+        <div className={styles.scheduleHeader}>
+          <p className={styles.dateHeader}>{getWeekHeader()}</p>
+          <div className={styles.switcher}>
+            <button type="button" onClick={goPrev} aria-label="Previous week">
+              <FontAwesomeIcon icon={faBackwardStep} />
+            </button>
+            <button type="button" onClick={goToday} aria-label="Current week">
+              <FontAwesomeIcon icon={faCalendarWeek} />
+            </button>
+            <button type="button" onClick={goNext} aria-label="Next week">
+              <FontAwesomeIcon icon={faForwardStep} />
+            </button>
+          </div>
+        </div>
         <div className={styles.weekGrid}>
           {currentWeek.map((day, i) => {
             // find schedule for this day
@@ -241,7 +254,10 @@ const Home = () => {
             const timeOffForDay = getTimeOffForDay(day);
 
             return (
-              <div key={i} className={styles.dayOfWeek}>
+              <div
+                key={i}
+                className={`${styles.dayOfWeek} ${isToday(day) ? styles.currentDay : ""}`}
+              >
                 <h3>{WEEKDAY[i]}</h3>
                 <div>
                   {scheduleForDay ? (

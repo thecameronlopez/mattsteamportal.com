@@ -5,5 +5,5 @@ from .comment import Comment
 from .post import Post
 from .time_off_request import TimeOffRequest
 from .enums import RoleEnum, PostCategoryEnum, PostVisibilityEnum, DepartmentEnum, LocationEnum, TimeOffStatusEnum
-
+from .receipts import Receipt
  

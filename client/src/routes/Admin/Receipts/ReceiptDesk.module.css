@@ -1,0 +1,361 @@
+.receiptDesk {
+  width: 100%;
+  max-width: 1480px;
+  margin: 0 auto;
+  display: grid;
+  gap: 1rem;
+  padding: 0.25rem 0 1.5rem;
+}
+
+.header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--linkText);
+  border-radius: 16px;
+  background: linear-gradient(
+    145deg,
+    rgba(109, 125, 178, 0.18),
+    rgba(30, 30, 30, 0.96) 48%
+  );
+}
+
+.header h2 {
+  margin: 0 0 0.25rem;
+  font-size: clamp(1.55rem, 2.3vw, 2rem);
+}
+
+.header p {
+  margin: 0;
+  color: var(--textSecondary);
+  max-width: 62ch;
+}
+
+.headerStats {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.headerStats span {
+  padding: 0.45rem 0.8rem;
+  border: 1px solid rgba(109, 125, 178, 0.42);
+  border-radius: 999px;
+  background: rgba(14, 14, 14, 0.72);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--textPrimary);
+  text-transform: capitalize;
+}
+
+.toolbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.6fr) minmax(170px, 0.8fr) auto auto;
+  gap: 0.7rem;
+  align-items: center;
+  padding: 0.85rem;
+  border: 1px solid var(--linkText);
+  border-radius: 14px;
+  background: var(--background);
+}
+
+.toolbar input,
+.toolbar select,
+.toolbar button {
+  min-height: 44px;
+  border-radius: 12px;
+  font: inherit;
+}
+
+.toolbar input,
+.toolbar select {
+  border: 1px solid var(--linkText);
+  background: var(--backgroundDark);
+  color: var(--textPrimary);
+  padding: 0 0.9rem;
+}
+
+.toolbar button {
+  border: 1px solid var(--linkText);
+  background: var(--backgroundDark);
+  color: var(--textPrimary);
+  padding: 0 1rem;
+  font-weight: 700;
+}
+
+.toolbar button:hover {
+  background: var(--linkText);
+}
+
+.workspace {
+  display: grid;
+  gap: 1rem;
+}
+
+.listPanel,
+.detailPanel {
+  border: 1px solid var(--linkText);
+  border-radius: 16px;
+  background: var(--background);
+  overflow: hidden;
+}
+
+.panelHeader,
+.detailHeader {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.95rem 1rem;
+  background: var(--backgroundDark);
+  border-bottom: 1px solid rgba(109, 125, 178, 0.28);
+}
+
+.panelHeader h3,
+.detailHeader h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.panelHeader p,
+.detailHeader p,
+.mobileNotice {
+  margin: 0;
+  color: var(--textSecondary);
+}
+
+.receiptList {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.receiptListItem {
+  display: grid;
+  gap: 0.55rem;
+  text-align: left;
+  padding: 0.95rem;
+  border: 1px solid rgba(109, 125, 178, 0.36);
+  border-radius: 14px;
+  background: linear-gradient(
+    150deg,
+    rgba(109, 125, 178, 0.1),
+    rgba(28, 28, 28, 0.94) 52%
+  );
+  color: var(--textPrimary);
+  box-shadow: none;
+}
+
+.receiptListItem:hover {
+  border-color: var(--linkText);
+  transform: translateY(-1px);
+}
+
+.receiptListItemActive {
+  border-color: rgba(214, 163, 82, 0.95);
+  box-shadow: 0 0 0 2px rgba(214, 163, 82, 0.14);
+}
+
+.receiptListTop,
+.receiptListMeta,
+.receiptListTags,
+.metaStrip,
+.linkRow,
+.actionRow,
+.paginationRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.receiptListTitle,
+.receiptListAmount {
+  font-weight: 800;
+}
+
+.receiptListMeta {
+  color: var(--textSecondary);
+  font-size: 0.92rem;
+}
+
+.receiptListTags span {
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(109, 125, 178, 0.16);
+  color: var(--textSecondary);
+  font-size: 0.8rem;
+  text-transform: capitalize;
+}
+
+.detailGrid {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1rem;
+}
+
+.field,
+.toggleField {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.field span,
+.toggleField span {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--textSecondary);
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  border: 1px solid var(--linkText);
+  border-radius: 12px;
+  background: var(--backgroundDark);
+  color: var(--textPrimary);
+  font: inherit;
+  padding: 0.8rem 0.95rem;
+}
+
+.field textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.field input:disabled,
+.field select:disabled,
+.field textarea:disabled {
+  opacity: 0.82;
+  cursor: default;
+}
+
+.toggleField {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  padding: 0.8rem 0.95rem;
+  border: 1px solid rgba(109, 125, 178, 0.36);
+  border-radius: 12px;
+  background: rgba(109, 125, 178, 0.08);
+}
+
+.toggleField input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--linkText);
+}
+
+.fieldFull {
+  grid-column: 1 / -1;
+}
+
+.metaStrip,
+.linkRow,
+.actionRow,
+.paginationRow {
+  padding: 0 1rem 1rem;
+}
+
+.metaStrip,
+.linkRow {
+  color: var(--textSecondary);
+  font-size: 0.9rem;
+}
+
+.linkRow a {
+  color: var(--linkText);
+}
+
+.actionRow {
+  justify-content: flex-end;
+}
+
+.actionRow button,
+.paginationRow button {
+  min-height: 42px;
+  padding: 0 1rem;
+  border: 1px solid var(--linkText);
+  border-radius: 10px;
+  background: var(--backgroundDark);
+  color: var(--textPrimary);
+  font: inherit;
+  font-weight: 700;
+}
+
+.actionRow button:hover:not(:disabled),
+.paginationRow button:hover:not(:disabled) {
+  background: var(--linkText);
+}
+
+.deleteButton {
+  border-color: rgba(185, 28, 28, 0.88) !important;
+  background: rgba(127, 29, 29, 0.82) !important;
+}
+
+.deleteButton:hover:not(:disabled) {
+  background: rgba(153, 27, 27, 0.95) !important;
+}
+
+.emptyState {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  padding: 1.25rem;
+  color: var(--textSecondary);
+  text-align: center;
+}
+
+.mobileNotice {
+  font-size: 0.9rem;
+  max-width: 32ch;
+}
+
+@media (min-width: 1100px) {
+  .workspace {
+    grid-template-columns: minmax(360px, 440px) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .listPanel {
+    position: sticky;
+    top: 0.5rem;
+  }
+
+  .detailGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    padding: 1.1rem;
+  }
+}
+
+@media (max-width: 1099px) {
+  .receiptDesk {
+    max-width: 860px;
+  }
+
+  .toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .receiptList {
+    max-height: none;
+  }
+
+  .actionRow {
+    display: none;
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    border-color: rgba(109, 125, 178, 0.26);
+  }
+}

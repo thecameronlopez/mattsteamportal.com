@@ -145,22 +145,53 @@
   flex: 0 0 auto;
 }
 
+.currentWeekSchedule {
+  width: 100%;
+  border: 1px solid var(--linkText);
+  border-radius: 14px;
+  background: var(--background);
+  overflow: hidden;
+}
+
+.scheduleHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.62rem 0.78rem;
+  background: var(--backgroundDark);
+  border-bottom: 1px solid var(--linkText);
+  flex-wrap: wrap;
+}
+
+.dateHeader {
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  font-weight: 800;
+  color: var(--textPrimary);
+  margin: 0;
+}
+
 .switcher {
-  display: grid;
+  display: inline-grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  width: min(430px, 100%);
-  margin: 0 auto;
+  width: auto;
 }
 
 .switcher button {
+  min-width: 48px;
   min-height: 42px;
   border: 1px solid var(--linkText);
   border-right: 0;
   border-radius: 0;
-  background: var(--backgroundDark);
+  background: var(--background);
   color: var(--textPrimary);
   box-shadow: none;
-  font-size: 0.95rem;
+  font-size: 0.98rem;
+  padding: 0 0.95rem;
+}
+
+.switcher button:nth-child(2) {
+  min-width: 56px;
 }
 
 .switcher button:first-child {
@@ -174,24 +205,6 @@
 
 .switcher button:hover {
   background: var(--linkText);
-}
-
-.currentWeekSchedule {
-  width: 100%;
-  border: 1px solid var(--linkText);
-  border-radius: 14px;
-  background: var(--background);
-  overflow: hidden;
-}
-
-.dateHeader {
-  width: 100%;
-  padding: 0.62rem 0.78rem;
-  font-size: clamp(1rem, 1.8vw, 1.2rem);
-  font-weight: 800;
-  color: var(--textPrimary);
-  background: var(--backgroundDark);
-  border-bottom: 1px solid var(--linkText);
 }
 
 .weekGrid {
@@ -211,6 +224,13 @@
     rgba(42, 40, 41, 0.9) 45%
   );
   overflow: hidden;
+}
+
+.currentDay {
+  border-color: rgba(214, 163, 82, 0.95);
+  box-shadow:
+    0 0 0 2px rgba(214, 163, 82, 0.2),
+    0 14px 24px rgba(0, 0, 0, 0.18);
 }
 
 .dayOfWeek h3 {
