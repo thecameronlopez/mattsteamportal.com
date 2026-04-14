@@ -3,10 +3,13 @@ import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import {
   deleteReceipt,
+  exportReceiptsCsv,
+  getAllUsers,
   getReceipt,
   getReceipts,
   updateReceipt,
 } from "../../../utils/API";
+import { useAuth } from "../../../Context/AuthContext";
 
 const PAYMENT_METHODS = [
   "Company Card",
@@ -32,6 +35,24 @@ const EXPENSE_CATEGORIES = [
 const RECEIPT_STATUS_OPTIONS = ["submitted", "reviewed", "matched"];
 const EMAIL_DELIVERY_OPTIONS = ["pending", "sent", "failed"];
 const DESKTOP_MEDIA_QUERY = "(min-width: 1100px)";
+const NOTE_PRESETS = [
+  {
+    label: "Waiting on clarification",
+    value: "Waiting on clarification from employee before review can be completed.",
+  },
+  {
+    label: "Missing receipt accepted",
+    value: "Missing receipt explanation reviewed and accepted.",
+  },
+  {
+    label: "Amount/vendor mismatch",
+    value: "Amount or vendor details need follow-up against supporting documentation.",
+  },
+  {
+    label: "Matched to statement",
+    value: "Matched to statement and ready for archive.",
+  },
+];
 
 const formatCurrencyFromCents = (amountInCents) => {
   const numericAmount = Number(amountInCents || 0);
@@ -83,7 +104,9 @@ const buildDraftFromReceipt = (receipt) => ({
 const draftsMatch = (left, right) => JSON.stringify(left) === JSON.stringify(right);
 
 const ReceiptDesk = () => {
+  const { user } = useAuth();
   const [receipts, setReceipts] = useState([]);
+  const [adminUsers, setAdminUsers] = useState([]);
   const [selectedReceiptId, setSelectedReceiptId] = useState(null);
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [draft, setDraft] = useState(null);
@@ -92,6 +115,7 @@ const ReceiptDesk = () => {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [isDesktop, setIsDesktop] = useState(() => {
     if (typeof window === "undefined") {
@@ -123,6 +147,21 @@ const ReceiptDesk = () => {
     return () => {
       mediaQuery.removeEventListener("change", syncLayout);
     };
+  }, []);
+
+  useEffect(() => {
+    const loadAdminUsers = async () => {
+      const result = await getAllUsers();
+
+      if (!result.success) {
+        toast.error(result.message);
+        return;
+      }
+
+      setAdminUsers(result.users.filter((candidate) => candidate.role === "admin"));
+    };
+
+    loadAdminUsers();
   }, []);
 
   useEffect(() => {
@@ -205,6 +244,36 @@ const ReceiptDesk = () => {
     return !draftsMatch(draft, initialDraft);
   }, [draft, initialDraft]);
 
+  const currentReviewerName = useMemo(() => {
+    if (!user) {
+      return "";
+    }
+
+    if (user.first_name && user.last_name) {
+      return `${user.first_name} ${user.last_name}`;
+    }
+
+    return user.username || "";
+  }, [user]);
+
+  const reviewerOptions = useMemo(() => {
+    const names = adminUsers
+      .map((adminUser) =>
+        adminUser.first_name && adminUser.last_name
+          ? `${adminUser.first_name} ${adminUser.last_name}`
+          : adminUser.username || "",
+      )
+      .filter(Boolean);
+
+    if (currentReviewerName && !names.includes(currentReviewerName)) {
+      names.unshift(currentReviewerName);
+    }
+
+    return [...new Set(names)];
+  }, [adminUsers, currentReviewerName]);
+
+  const effectiveReviewedBy = draft?.reviewed_by || currentReviewerName || "";
+
   const handleSearchSubmit = (event) => {
     event.preventDefault();
     setFilters((current) => ({
@@ -221,6 +290,22 @@ const ReceiptDesk = () => {
       status: "",
       page: 1,
     });
+  };
+
+  const handleExport = async () => {
+    setExporting(true);
+    const result = await exportReceiptsCsv({
+      status: filters.status,
+      search: filters.appliedSearch,
+    });
+    setExporting(false);
+
+    if (!result.success) {
+      toast.error(result.message);
+      return;
+    }
+
+    toast.success("Receipt CSV export downloaded.");
   };
 
   const handleDraftFieldChange = (event) => {
@@ -253,13 +338,106 @@ const ReceiptDesk = () => {
     });
   };
 
+  const handleApplyNotePreset = (presetText) => {
+    if (!isDesktop) {
+      return;
+    }
+
+    setDraft((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const existingNotes = current.notes.trim();
+      if (!existingNotes) {
+        return {
+          ...current,
+          notes: presetText,
+        };
+      }
+
+      if (existingNotes.includes(presetText)) {
+        return current;
+      }
+
+      return {
+        ...current,
+        notes: `${existingNotes}\n${presetText}`,
+      };
+    });
+  };
+
+  const applyQuickReviewAction = async (action) => {
+    if (!selectedReceiptId || !draft || !isDesktop) {
+      return;
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+    let nextDraft = {
+      ...draft,
+      reviewed_by: draft.reviewed_by || currentReviewerName,
+      reviewed_date: draft.reviewed_date || today,
+    };
+
+    if (action === "reviewed") {
+      nextDraft = {
+        ...nextDraft,
+        receipt_status: "reviewed",
+      };
+    }
+
+    if (action === "matched") {
+      const existingNotes = nextDraft.notes.trim();
+      const matchedNote = NOTE_PRESETS.find(
+        (preset) => preset.label === "Matched to statement",
+      )?.value;
+
+      nextDraft = {
+        ...nextDraft,
+        receipt_status: "matched",
+        matched_to_statement: true,
+        notes:
+          matchedNote && existingNotes && !existingNotes.includes(matchedNote)
+            ? `${existingNotes}\n${matchedNote}`
+            : matchedNote && !existingNotes
+              ? matchedNote
+              : nextDraft.notes,
+      };
+    }
+
+    setDraft(nextDraft);
+    setSaving(true);
+    const result = await updateReceipt(selectedReceiptId, nextDraft);
+    setSaving(false);
+
+    if (!result.success) {
+      toast.error(result.message);
+      return;
+    }
+
+    const refreshedDraft = buildDraftFromReceipt(result.receipt);
+    setSelectedReceipt(result.receipt);
+    setDraft(refreshedDraft);
+    setInitialDraft(refreshedDraft);
+    setRefreshKey((current) => current + 1);
+    toast.success(
+      action === "matched"
+        ? "Receipt marked as matched."
+        : "Receipt marked as reviewed.",
+    );
+  };
+
   const handleSave = async () => {
     if (!selectedReceiptId || !draft || !isDesktop) {
       return;
     }
 
     setSaving(true);
-    const result = await updateReceipt(selectedReceiptId, draft);
+    const payload = {
+      ...draft,
+      reviewed_by: draft.reviewed_by || currentReviewerName,
+    };
+    const result = await updateReceipt(selectedReceiptId, payload);
     setSaving(false);
 
     if (!result.success) {
@@ -360,6 +538,9 @@ const ReceiptDesk = () => {
         <button type="submit">Search</button>
         <button type="button" onClick={handleResetFilters}>
           Reset
+        </button>
+        <button type="button" onClick={handleExport} disabled={exporting}>
+          {exporting ? "Exporting..." : "Export CSV"}
         </button>
       </form>
 
@@ -641,12 +822,19 @@ const ReceiptDesk = () => {
 
                 <label className={styles.field}>
                   <span>Reviewed By</span>
-                  <input
+                  <select
                     name="reviewed_by"
-                    value={draft.reviewed_by}
+                    value={effectiveReviewedBy}
                     onChange={handleDraftFieldChange}
                     disabled={!isDesktop}
-                  />
+                  >
+                    <option value="">Select reviewer</option>
+                    {reviewerOptions.map((reviewerName) => (
+                      <option key={reviewerName} value={reviewerName}>
+                        {reviewerName}
+                      </option>
+                    ))}
+                  </select>
                 </label>
 
                 <label className={styles.field}>
@@ -702,6 +890,18 @@ const ReceiptDesk = () => {
 
                 <label className={`${styles.field} ${styles.fieldFull}`}>
                   <span>Notes</span>
+                  <div className={styles.notePresets}>
+                    {NOTE_PRESETS.map((preset) => (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        onClick={() => handleApplyNotePreset(preset.value)}
+                        disabled={!isDesktop}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
                   <textarea
                     name="notes"
                     value={draft.notes}
@@ -715,6 +915,25 @@ const ReceiptDesk = () => {
                 <span>Created: {new Date(selectedReceipt.created_at).toLocaleString()}</span>
                 <span>Updated: {new Date(selectedReceipt.updated_at).toLocaleString()}</span>
               </div>
+
+              {isDesktop && (
+                <div className={styles.quickActionRow}>
+                  <button
+                    type="button"
+                    onClick={() => applyQuickReviewAction("reviewed")}
+                    disabled={saving || deleting}
+                  >
+                    Mark Reviewed
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => applyQuickReviewAction("matched")}
+                    disabled={saving || deleting}
+                  >
+                    Mark Matched
+                  </button>
+                </div>
+              )}
 
               <div className={styles.linkRow}>
                 {selectedReceipt.external_file_url ? (

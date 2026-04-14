@@ -188,6 +188,61 @@ export const getReceipts = async ({
   }
 };
 
+export const exportReceiptsCsv = async ({
+  status = "",
+  search = "",
+} = {}) => {
+  try {
+    const params = new URLSearchParams();
+
+    if (status) {
+      params.set("status", status);
+    }
+
+    if (search) {
+      params.set("search", search);
+    }
+
+    const queryString = params.toString();
+    const response = await fetch(
+      `/api/receipts/export/csv${queryString ? `?${queryString}` : ""}`,
+      {
+        credentials: "include",
+      },
+    );
+
+    if (!response.ok) {
+      const contentType = response.headers.get("content-type") || "";
+
+      if (contentType.includes("application/json")) {
+        const data = await response.json();
+        throw new Error(data.message || "Failed to export receipts.");
+      }
+
+      const rawText = await response.text();
+      throw new Error(rawText || "Failed to export receipts.");
+    }
+
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const contentDisposition = response.headers.get("content-disposition") || "";
+    const filenameMatch = contentDisposition.match(/filename="([^"]+)"/i);
+
+    link.href = downloadUrl;
+    link.download = filenameMatch?.[1] || "receipts.csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(downloadUrl);
+
+    return { success: true };
+  } catch (error) {
+    console.error("[RECEIPT CSV EXPORT ERROR]: ", error);
+    return { success: false, message: error.message };
+  }
+};
+
 export const getReceipt = async (id) => {
   try {
     const response = await fetch(`/api/receipts/${id}`, {

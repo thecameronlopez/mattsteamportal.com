@@ -54,7 +54,7 @@
 
 .toolbar {
   display: grid;
-  grid-template-columns: minmax(220px, 1.6fr) minmax(170px, 0.8fr) auto auto;
+  grid-template-columns: minmax(220px, 1.6fr) minmax(170px, 0.8fr) auto auto auto;
   gap: 0.7rem;
   align-items: center;
   padding: 0.85rem;
@@ -166,6 +166,7 @@
 .receiptListMeta,
 .receiptListTags,
 .metaStrip,
+.quickActionRow,
 .linkRow,
 .actionRow,
 .paginationRow {
@@ -231,6 +232,34 @@
   resize: vertical;
 }
 
+.notePresets {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.notePresets button {
+  min-height: 34px;
+  padding: 0 0.8rem;
+  border: 1px solid rgba(109, 125, 178, 0.42);
+  border-radius: 999px;
+  background: rgba(109, 125, 178, 0.12);
+  color: var(--textPrimary);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.notePresets button:hover:not(:disabled) {
+  background: rgba(109, 125, 178, 0.28);
+}
+
+.notePresets button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .field input:disabled,
 .field select:disabled,
 .field textarea:disabled {
@@ -258,6 +287,7 @@
 }
 
 .metaStrip,
+.quickActionRow,
 .linkRow,
 .actionRow,
 .paginationRow {
@@ -272,6 +302,25 @@
 
 .linkRow a {
   color: var(--linkText);
+}
+
+.quickActionRow {
+  justify-content: flex-start;
+}
+
+.quickActionRow button {
+  min-height: 40px;
+  padding: 0 0.95rem;
+  border: 1px solid rgba(109, 125, 178, 0.48);
+  border-radius: 999px;
+  background: rgba(109, 125, 178, 0.12);
+  color: var(--textPrimary);
+  font: inherit;
+  font-weight: 800;
+}
+
+.quickActionRow button:hover:not(:disabled) {
+  background: rgba(109, 125, 178, 0.28);
 }
 
 .actionRow {

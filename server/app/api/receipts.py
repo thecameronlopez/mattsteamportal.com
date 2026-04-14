@@ -1,7 +1,9 @@
+import csv
+from io import StringIO
 from decimal import InvalidOperation
 from datetime import datetime, date
 from zoneinfo import ZoneInfo
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, make_response
 from flask_login import login_required, current_user
 from sqlalchemy import or_
 
@@ -69,18 +71,7 @@ def parse_receipt_amount(raw_value):
     return parse_money_to_cents(cleaned)
 
 
-@receipts_bp.route("", methods=["GET"])
-@login_required
-def list_receipts():
-    unauthorized = require_admin()
-    if unauthorized:
-        return unauthorized
-
-    page = max(request.args.get("page", 1, type=int), 1)
-    limit = min(max(request.args.get("limit", 20, type=int), 1), 100)
-    status = (request.args.get("status") or "").strip().lower()
-    search = (request.args.get("search") or "").strip()
-
+def build_receipts_query(status, search):
     query = Receipt.query
 
     if status:
@@ -96,6 +87,23 @@ def list_receipts():
                 Receipt.reviewed_by.ilike(wildcard),
             )
         )
+
+    return query
+
+
+@receipts_bp.route("", methods=["GET"])
+@login_required
+def list_receipts():
+    unauthorized = require_admin()
+    if unauthorized:
+        return unauthorized
+
+    page = max(request.args.get("page", 1, type=int), 1)
+    limit = min(max(request.args.get("limit", 20, type=int), 1), 100)
+    status = (request.args.get("status") or "").strip().lower()
+    search = (request.args.get("search") or "").strip()
+
+    query = build_receipts_query(status, search)
 
     total_items = query.count()
     total_pages = max((total_items + limit - 1) // limit, 1)
@@ -118,6 +126,100 @@ def list_receipts():
             "total_pages": total_pages,
         },
     ), 200
+
+
+@receipts_bp.route("/export/csv", methods=["GET"])
+@login_required
+def export_receipts_csv():
+    unauthorized = require_admin()
+    if unauthorized:
+        return unauthorized
+
+    status = (request.args.get("status") or "").strip().lower()
+    search = (request.args.get("search") or "").strip()
+
+    receipts = (
+        build_receipts_query(status, search)
+        .order_by(Receipt.purchase_date.desc(), Receipt.id.desc())
+        .all()
+    )
+
+    csv_buffer = StringIO()
+    writer = csv.writer(csv_buffer)
+    writer.writerow(
+        [
+            "Receipt ID",
+            "Receipt UUID",
+            "Employee",
+            "Amount",
+            "Method Used",
+            "Submission Date",
+            "Purchase Date",
+            "Vendor",
+            "Business Reason",
+            "Expense Category",
+            "PO Required",
+            "PO Number",
+            "Work Order Number",
+            "Receipt Status",
+            "Missing Receipt",
+            "Missing Receipt Reason",
+            "Email Delivery Status",
+            "Email Delivery Error",
+            "Matched To Statement",
+            "Reviewed By",
+            "Reviewed Date",
+            "Notes",
+            "External File URL",
+            "External File ID",
+            "Created At",
+            "Updated At",
+        ]
+    )
+
+    for receipt in receipts:
+        writer.writerow(
+            [
+                receipt.id,
+                receipt.uuid,
+                receipt.employee,
+                f"{receipt.amount / 100:.2f}",
+                receipt.method_used,
+                receipt.submission_date.isoformat(),
+                receipt.purchase_date.isoformat(),
+                receipt.vendor,
+                receipt.business_reason,
+                receipt.expense_category or "",
+                "Yes" if receipt.po_required else "No",
+                receipt.po_number or "",
+                receipt.work_order_number or "",
+                receipt.receipt_status,
+                "Yes" if receipt.missing_receipt else "No",
+                receipt.missing_receipt_reason or "",
+                receipt.email_delivery_status,
+                receipt.email_delivery_error or "",
+                "Yes" if receipt.matched_to_statement else "No",
+                receipt.reviewed_by or "",
+                receipt.reviewed_date.isoformat() if receipt.reviewed_date else "",
+                receipt.notes or "",
+                receipt.external_file_url or "",
+                receipt.external_file_id or "",
+                receipt.created_at.isoformat(),
+                receipt.updated_at.isoformat(),
+            ]
+        )
+
+    filename_parts = ["receipts"]
+    if status:
+        filename_parts.append(status)
+    if search:
+        filename_parts.append("filtered")
+    filename = "_".join(filename_parts) + ".csv"
+
+    response = make_response(csv_buffer.getvalue())
+    response.headers["Content-Type"] = "text/csv; charset=utf-8"
+    response.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
 
 
 @receipts_bp.route("/<int:receipt_id>", methods=["GET"])
