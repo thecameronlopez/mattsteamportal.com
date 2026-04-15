@@ -12,11 +12,19 @@ const ALLOWED_FILE_TYPES = new Set([
 const MAX_RECEIPT_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
 const PAYMENT_METHODS = [
-  "Company Card",
-  "Personal Card",
   "Cash",
   "Check",
   "ACH",
+  "Amex-25009",
+  "Amex-41005",
+  "Amex-24002",
+  "Amex-91007",
+  "Amex-52006",
+  "Amex-41002",
+  "JD Bank - 7049",
+  "JD Bank - 5092",
+  "Personal Card",
+  "Fuel Card",
   "Other",
 ];
 
@@ -28,6 +36,8 @@ const EXPENSE_CATEGORIES = [
   "Meals",
   "Office",
   "Marketing",
+  "Maintenance",
+  "Vehicle",
   "Other",
 ];
 
